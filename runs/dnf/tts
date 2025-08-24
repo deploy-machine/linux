@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install pied (tool to install piper with orca for natural sounding voices)
+sudo snap install pied

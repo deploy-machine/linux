@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# Change this to your favourite distro or manufacturer
+THEME="system76"
+
+# Download grub theme
+wget https://github.com/AdisonCavani/distro-grub-themes/releases/download/v3.2/$THEME.tar -O ~/Downloads/$THEME.tar
+
+# Go to the download folder
+cd ~/Downloads
+
+# Make a directory that holds the files
+mkdir -p $THEME
+
+# Untar it
+tar -xvf $THEME.tar -C ./$THEME
+
+# Create the grub themes dir
+sudo mkdir -p /boot/grub/themes
+
+# Move the newly created theme there
+sudo mv ~/Downloads/$THEME /boot/grub/themes/
+
+# In case of dual or tripple booting
+sudo sed -i 's/^#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/' /etc/default/grub
+
+# Add grub theme
+if ! tail -n 1 /etc/default/grub | grep -Fxq "GRUB_THEME=/boot/grub/themes/$THEME/theme.txt"; then
+  echo "GRUB_THEME=/boot/grub/themes/$THEME/theme.txt" | sudo tee -a /etc/default/grub
+fi
+
+# Update grub
+sudo update-grub

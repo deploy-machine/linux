@@ -1,0 +1,43 @@
+#!/bin/sh
+
+# Prerequisites Opencv
+sudo apt update && sudo apt install -y cmake g++ wget unzip libopencv-videoio-dev
+
+# Go to the home dir
+cd ~/
+
+# Get opencv
+wget -O opencv.zip https://github.com/opencv/opencv/archive/4.11.0.zip
+
+# Unzip it
+unzip opencv.zip
+
+# Move it
+mv opencv-4.11.0 opencv
+
+# Move into it
+cd ~/opencv
+
+# Create build dir
+mkdir -p build && cd build
+
+# Generate build scripts
+cmake ../
+
+# Build opencv
+make -j$(nproc)
+
+# Install the binaries
+sudo make install
+
+# Install Minimal Prerequisites
+sudo apt install libssl-dev libstdc++-12-dev clang libclang-dev ffmpeg libavfilter-dev libavdevice-dev libasound2-dev yt-dlp
+
+# Install tplay
+cargo install tplay
+
+# Install ascii-webcam
+cargo install ascii-webcam
+
+# Cleanup
+rm -rf ~/opencv.zip

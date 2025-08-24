@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Install Trayer and NetworkManager Applet
+# Package name for NetworkManager applet might vary (e.g., NetworkManager-applet or similar)
+sudo zypper install -y -l NetworkManager-applet

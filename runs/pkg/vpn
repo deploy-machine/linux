@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install vpn software
+sudo pkg install -y wireguard

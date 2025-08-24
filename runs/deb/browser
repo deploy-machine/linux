@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Needed for Microsoft based products sometimes...
+
+# Grab the latest file from the repo
+latest_file=$(curl -s https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/ | \
+    sed 's/.*href="\([^"]*\).*/\1/' | \
+    grep 'microsoft-edge-stable_' | grep '.deb' | sort -V | tail -n 1)
+
+# Download the latest file
+wget "https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/$latest_file"
+
+# Install browser
+sudo apt install -y ./$latest_file
+
+# Delete deb file
+sudo rm $latest_file
+
+# Install firefox as a flatpak
+flatpak install -y flathub org.mozilla.firefox
+

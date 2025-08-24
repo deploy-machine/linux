@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Install chat clients
+sudo apt install -y irssi
+
+# Install PingMe (for messages)
+curl -s https://raw.githubusercontent.com/kha7iq/pingme/master/install.sh | sudo sh

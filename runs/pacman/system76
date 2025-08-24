@@ -1,0 +1,3 @@
+#!/bin/bash
+
+yay -S system76-firmware-daemon system76-firmware firmware-manager system76-power system76-driver system76-dkms

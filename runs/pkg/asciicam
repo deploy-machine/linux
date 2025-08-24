@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# --- Prerequisites OpenCV & Other Tools ---
+echo "Installing prerequisites..."
+sudo pkg install -y \
+    cmake gmake wget unzip \
+    ffmpeg gtk3 jpeg-turbo libpng libtiff webp \
+    openssl clang llvm # llvm often provides libclang on FreeBSD
+    alsa-lib yt-dlp \
+    rust-nightly git # rust-nightly or rust, git for cargo
+
+# --- OpenCV Installation from Source ---
+OPENCV_VERSION="4.11.0"
+
+echo "Preparing to install OpenCV version ${OPENCV_VERSION} from source..."
+cd "$HOME" || { echo "Failed to cd to $HOME"; exit 1; }
+
+echo "Downloading OpenCV source..."
+wget -O opencv.zip "https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip"
+
+echo "Unzipping OpenCV..."
+unzip -q opencv.zip
+
+mv "opencv-${OPENCV_VERSION}" opencv
+cd "$HOME/opencv" || { echo "Failed to cd to $HOME/opencv"; exit 1; }
+
+mkdir -p build && cd build
+
+echo "Configuring OpenCV build with CMake..."
+# Note: On FreeBSD, ensure paths to libs are correctly found by CMake.
+# May need to set CMAKE_PREFIX_PATH or specific lib paths if not found by default.
+cmake \
+    -D CMAKE_BUILD_TYPE=RELEASE \
+    -D CMAKE_MAKE_PROGRAM=/usr/local/bin/gmake \
+    -D WITH_GTK=ON \
+    -D WITH_FFMPEG=ON \
+    -D WITH_JPEG=ON \
+    -D WITH_PNG=ON \
+    -D WITH_TIFF=ON \
+    -D WITH_WEBP=ON \
+    ..
+
+num_cores=$(sysctl -n hw.ncpu)
+echo "Building OpenCV using ${num_cores} cores..."
+gmake -j"${num_cores}" # Use gmake on FreeBSD
+
+echo "Installing OpenCV..."
+sudo gmake install # Use gmake on FreeBSD
+
+# --- Install Cargo Tools ---
+# Ensure cargo is in PATH. Rust installed via pkg might require sourcing a script.
+# e.g. source "$HOME/.cargo/env" if rustup was used, or check pkg message for rust.
+echo "Installing tplay via cargo..."
+cargo install tplay
+
+echo "Installing ascii-webcam via cargo..."
+cargo install ascii-webcam
+
+# --- Cleanup ---
+echo "Cleaning up downloaded files..."
+rm -rf "$HOME/opencv.zip"
+
+echo "Script finished."

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Install pcmanfm.
+# The 'onedrive' client is primarily Linux-focused and unlikely
+# to be directly available or fully functional on FreeBSD.
+sudo pkg install -y pcmanfm
+
+# Run onedrive for setup
+# onedrive # Commented out as 'onedrive' client is likely unavailable
+
+# Enable onedrive for auto sync
+# systemctl enable --user onedrive # Commented out: FreeBSD does not use systemd
+
+# Start syncing
+# systemctl start --user onedrive # Commented out: FreeBSD does not use systemd
+

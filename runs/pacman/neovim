@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "Installing Neovim"
+sudo pacman -S --noconfirm --needed neovim base-devel cmake gettext ninja fd git unzip curl
+
+# Clone additional repositories
+#git clone https://github.com/Theprimeagen/harpoon.git "$HOME/personal/harpoon"
+#git clone https://github.com/Theprimeagen/vim-apm.git "$HOME/personal/vim-apm"
+#git clone https://github.com/Theprimeagen/vim-with-me.git "$HOME/personal/vim-with-me"
+#git clone https://github.com/Theprimeagen/vim-arcade.git "$HOME/personal/vim-arcade"
+#git clone https://github.com/nvim-lua/plenary.nvim.git "$HOME/personal/plenary"
+
+echo "Neovim installation process complete."

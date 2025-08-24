@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Install dependencies
+sudo dnf install -y wget unzip fontconfig git
+
+# --- Font Installation Logic (from user) ---
+version='2.1.0' # Consider using a newer version like 3.1.1 or 3.2.1 if available and desired
+fonts_dir="$HOME/.local/share/fonts"
+
+if [ ! -d "$fonts_dir" ]; then
+    mkdir -p "$fonts_dir"
+fi
+
+fonts="BitstreamVeraSansMono CodeNewRoman DroidSansMono FiraCode FiraMono Go-Mono Hack Hermit JetBrainsMono Meslo Noto Overpass ProggyClean RobotoMono SourceCodePro SpaceMono Ubuntu UbuntuMono"
+
+for font in $fonts; do
+    zip_file="${font}.zip"
+    download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v${version}/${zip_file}"
+
+    printf "Checking for %s in %s...\n" "$zip_file" "$fonts_dir"
+
+    if [ -f "$fonts_dir/$zip_file" ]; then
+        printf "Zip file %s already exists, skipping download.\n" "$zip_file"
+    else
+        printf "Zip file %s does not exist, downloading...\n" "$zip_file"
+        printf "Downloading %s\n" "$download_url"
+        wget --quiet -P "$fonts_dir" "$download_url" || { echo "Download failed for $font"; continue; }
+    fi
+    
+    printf "Unzipping %s to %s (if not already present)...\n" "$zip_file" "$fonts_dir"
+    unzip -n "$fonts_dir/$zip_file" -d "$fonts_dir" || { echo "Unzip failed or files already exist for $font"; }
+
+done
+
+echo "Updating font cache..."
+fc-cache -fv
+
+echo "Nerd Fonts installation process complete."

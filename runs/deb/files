@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Install onedrive
+sudo apt install -y onedrive pcmanfm
+
+# Run onedrive for setup
+onedrive
+
+# Enable onedrive for auto sync
+systemctl enable --user onedrive
+
+# Start syncing
+systemctl start --user onedrive

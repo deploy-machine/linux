@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Ensure DEV_ENV_HOME is set
+if [ -z "$DEV_ENV_HOME" ]; then
+  echo "Error: DEV_ENV_HOME is not set. Please set it to your development directory."
+  exit 1
+fi
+
+# Install xsession
+sudo dnf install -y gnome-session-xsession
+
+# Install Dev Tools
+sudo dnf group install -y "development-tools" "c-development"
+
+# Install dependencies
+sudo dnf install -y rofi libxkbcommon-x11-devel xterm libXft-devel harfbuzz-devel gd-devel libX11-devel libXinerama-devel webkit2gtk4.1-devel dash imlib2-devel xorg-x11-server-devel
+
+# Get CPU Core count
+num_cores=$(nproc)
+
+# Go to dwm
+cd "$DEV_ENV_HOME/dwm" || { echo "Failed to cd into $DEV_ENV_HOME/dwm"; exit 1; }
+
+# Run make
+echo "Building dwm..."
+make
+
+# Install dwm
+echo "Installing dwm..."
+sudo make install -j"$num_cores"
+
+# Go to st
+cd "$DEV_ENV_HOME/st" || { echo "Failed to cd into $DEV_ENV_HOME/st"; exit 1; }
+
+# Run make
+echo "Building st..."
+make
+
+# Install st
+echo "Installing st..."
+sudo make install -j"$num_cores"
+
+# Setup rofi theme
+echo "Setting up Rofi theme..."
+mkdir -p ~/.config/rofi
+cp -R "$DEV_ENV_HOME/rofi/"* ~/.config/rofi/
+
+# Copy dwm scripts
+echo "Copying dwm scripts..."
+mkdir -p ~/.config/scripts
+cp -R "$DEV_ENV_HOME/scripts/"* ~/.config/scripts/
+
+echo "DWM, ST, and Rofi setup script finished."
+
+sudo cp $DEV_ENV_HOME/xsession/dwm.desktop /usr/share/xsessions/dwm.desktop

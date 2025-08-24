@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Install Trayer and NetworkManager Applet
+sudo dnf install -y xset xsetroot network-manager-applet
+

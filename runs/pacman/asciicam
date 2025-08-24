@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# --- Prerequisites OpenCV & Other Tools ---
+echo "Installing prerequisites..."
+sudo pacman -S --noconfirm --needed cmake base-devel wget unzip ffmpeg gtk3 libjpeg-turbo libpng libtiff libwebp openssl clang alsa-lib yt-dlp rust git opencv
+yay -S downgrade 
+echo "Please choose 4.11.4"
+downgrade opencv 
+
+# --- Install Cargo Tools ---
+echo "Installing tplay via cargo..."
+cargo install tplay
+
+echo "Installing ascii-webcam via cargo..."
+cargo install ascii-webcam
+
+# Optionally, remove the build directory if space is a concern and you don't need it for uninstallation
+# rm -rf "$HOME/opencv"
+
+echo "Script finished."

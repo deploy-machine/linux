@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Install dependencies for picom
+# Package names are Arch Linux equivalents
+sudo pacman -S --noconfirm picom base-devel cmake autoconf automake libtool binutils bison gcc gdb glibc m4 make libev libevdev libxext libxcb xcb-util-renderutil xcb-util-image xcb-util pixman dbus libconfig mesa pcre2 libevdev uthash libev libx11 pcre meson ninja git
+
+echo "Picom installation attempted."
+

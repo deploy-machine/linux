@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Refresh repositories and install dependencies for somafm-cli
+sudo zypper refresh
+sudo zypper install -y -l git make gcc
+
+# Install fun tools
+# onefetch and asciiquarium might not be in default openSUSE repos.
+# They might require adding an OBS repository or manual installation.
+echo "Installing fun tools..."
+sudo zypper install -y -l yt-dlp btop neofetch htop glances cbonsai cmatrix lsd
+
+# For onefetch and asciiquarium, you might need to find them in OBS:
+echo "Note: 'onefetch' and 'asciiquarium' may require OBS or manual installation on openSUSE."
+
+# Install somafm cli
+if [ ! -d "$HOME/somafm" ]; then
+    git clone https://github.com/rockymadden/somafm-cli.git "$HOME/somafm"
+fi
+cd "$HOME/somafm" || exit
+make
+sudo make install
+

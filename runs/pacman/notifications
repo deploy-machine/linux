@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install Notification Daemon (dunst)
+sudo pacman -S --noconfirm dunst

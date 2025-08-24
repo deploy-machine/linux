@@ -1,0 +1,50 @@
+#!/bin/sh
+
+version='2.1.0'
+fonts_dir="$HOME/.local/share/fonts"
+
+if [ ! -d "$fonts_dir" ]; then
+    mkdir -p "$fonts_dir"
+fi
+
+fonts="BitstreamVeraSansMono CodeNewRoman DroidSansMono FiraCode FiraMono Go-Mono Hack Hermit JetBrainsMono Meslo Noto Overpass ProggyClean RobotoMono SourceCodePro SpaceMono Ubuntu UbuntuMono"
+
+for font in $fonts; do
+    zip_file="${font}.zip"
+    download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v${version}/${zip_file}"
+
+    printf "Checking for %s...\n" "$zip_file"
+
+    if [ -f "$fonts_dir/$zip_file" ]; then
+        printf "File %s already exists, skipping download.\n" "$zip_file"
+        continue  # This is the crucial line to add back in
+    else
+        printf "File %s does not exist, downloading...\n" "$zip_file"
+        printf "Downloading %s\n" "$download_url"
+        wget -P $fonts_dir "$download_url" || { echo "Download failed for $font"; continue; }
+    fi
+
+    # Get the list of .ttf files in the zip
+    ttf_files=$(unzip -l "$fonts_dir/$zip_file" | grep '\.ttf$' | awk '{print $4}')
+
+    skip_unzip=true
+
+    # Check if any of the .ttf files don't exist in the destination
+    for ttf_file in $ttf_files; do
+        test_file="$fonts_dir/$ttf_file"
+        if [ ! -f "$test_file" ]; then
+            skip_unzip=false
+            break
+        fi
+    done
+
+    if $skip_unzip; then
+        printf "All fonts from %s already exist in %s, skipping unzip.\n" "$zip_file" "$fonts_dir"
+    else
+        printf "Unzipping %s...\n" "$zip_file"
+        unzip -o "$fonts_dir/$zip_file" -d "$fonts_dir" || { echo "Unzip failed for $font"; continue; }
+    fi
+
+done
+
+fc-cache -fv

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Install dependencies for picom
+# Package names are FreeBSD pkg equivalents
+# Note: libGL on FreeBSD is often provided by mesa-libs or libglvnd
+sudo pkg install -y \
+    libX11 libXext libconfig libdbus libev libglvnd \
+    libpcre libpcre2 libpixman libxcb libXdamage libXfixes \
+    libXinerama uthash xcb-util xcb-util-image xcb-util-renderutil \
+    libevdev \
+    meson ninja git pkgconf
+
+# Get picom with animations
+git clone https://gitlab.com/phyos/picom.git $HOME/picom
+
+# Build picom
+cd $HOME/picom || exit
+git submodule update --init --recursive
+# FreeBSD might need to be told where to find pkgconf for meson if not in default path
+# Adjust meson command if needed, e.g., by setting PKG_CONFIG_PATH
+meson --buildtype=release . build
+ninja -C build
+sudo ninja -C build install
+
+echo "Picom installation attempted."
+

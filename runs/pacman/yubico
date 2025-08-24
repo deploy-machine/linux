@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Install FIDO2 development libraries
+sudo pacman -S --noconfirm libfido2

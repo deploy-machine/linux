@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Install dependencies (curl is needed for pingme)
+sudo dnf install -y irssi curl
+
+# Install PingMe (for messages)
+curl -s https://raw.githubusercontent.com/kha7iq/pingme/master/install.sh | sudo sh
+

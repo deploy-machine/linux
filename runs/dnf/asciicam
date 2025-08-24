@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# --- Prerequisites OpenCV & Other Tools ---
+echo "Installing prerequisites..."
+sudo dnf install -y \
+    cmake gcc-c++ wget unzip \
+    ffmpeg-devel gtk3-devel libjpeg-turbo-devel libpng-devel libtiff-devel libwebp-devel \
+    openssl-devel clang clang-devel \
+    alsa-lib-devel yt-dlp \
+    rust cargo git # git for cargo
+
+# --- OpenCV Installation from Source ---
+OPENCV_VERSION="4.11.0"
+
+echo "Preparing to install OpenCV version ${OPENCV_VERSION} from source..."
+cd "$HOME" || { echo "Failed to cd to $HOME"; exit 1; }
+
+echo "Downloading OpenCV source..."
+wget -O opencv.zip "https://github.com/opencv/opencv/archive/${OPENCV_VERSION}.zip"
+
+echo "Unzipping OpenCV..."
+unzip -q opencv.zip
+
+mv "opencv-${OPENCV_VERSION}" opencv
+cd "$HOME/opencv" || { echo "Failed to cd to $HOME/opencv"; exit 1; }
+
+mkdir -p build && cd build
+
+echo "Configuring OpenCV build with CMake..."
+cmake \
+    -D CMAKE_BUILD_TYPE=RELEASE \
+    -D WITH_GTK=ON \
+    -D WITH_FFMPEG=ON \
+    -D WITH_JPEG=ON \
+    -D WITH_PNG=ON \
+    -D WITH_TIFF=ON \
+    -D WITH_WEBP=ON \
+    ..
+
+num_cores=$(nproc)
+echo "Building OpenCV using ${num_cores} cores..."
+make -j"${num_cores}"
+
+echo "Installing OpenCV..."
+sudo make install
+
+# --- Install Cargo Tools ---
+echo "Installing tplay via cargo..."
+cargo install tplay
+
+echo "Installing ascii-webcam via cargo..."
+cargo install ascii-webcam
+
+# --- Cleanup ---
+echo "Cleaning up downloaded files..."
+rm -rf "$HOME/opencv.zip"
+
+echo "Script finished."

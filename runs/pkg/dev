@@ -1,0 +1,136 @@
+#!/bin/sh
+
+# --- GitHub CLI ---
+echo "Installing GitHub CLI..."
+sudo pkg install -y gh
+
+# --- Development Stuff ---
+echo "Installing core development tools..."
+# Note: python-venv might be pyXX-virtualenv or similar
+# Docker on FreeBSD typically means running Linux VMs (e.g. via bhyve or VirtualBox) or using jails.
+# 'docker.io' equivalent is complex. For now, installing client tools if available.
+# Default JRE/JDK: openjdk17 is common
+sudo pkg install -y \
+    luarocks ruby go python py39-pip py39-virtualenv \
+    zsh unixODBC tmux php82 openjdk17 \
+    tree_sitter perl wget curl git unzip
+
+# Install iredis via pip
+echo "Installing iredis..."
+pip-3.9 install iredis # Use versioned pip
+
+# --- PHP Composer ---
+echo "Installing PHP Composer..."
+EXPECTED_CHECKSUM="$(php -r 'copy("https://composer.github.io/installer.sig", "php://stdout");')"
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+ACTUAL_CHECKSUM="$(php -r "echo hash_file('sha384', 'composer-setup.php');")"
+
+if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]
+then
+    >&2 echo 'ERROR: Invalid installer checksum'
+    rm composer-setup.php
+    exit 1
+fi
+
+php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+rm composer-setup.php
+
+# --- NVM (Node Version Manager) ---
+echo "Installing NVM..."
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | sh # NVM requires bash, ensure bash is installed and used
+
+export NVM_DIR="$HOME/.nvm"
+# Ensure NVM_DIR is created if the script above doesn't
+mkdir -p "$NVM_DIR"
+# The following lines assume bash is the shell running this part, or nvm.sh is POSIX compatible enough
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+echo "Installing LTS Node.js via NVM..."
+nvm install --lts
+nvm use --lts
+nvm alias default 'lts/*'
+
+# --- Tree-sitter CLI (via npm) ---
+echo "Installing tree-sitter-cli..."
+npm install -g tree-sitter-cli
+
+# --- Docker ---
+echo "Docker on FreeBSD: Note that Docker typically runs Linux containers."
+echo "This may involve setting up a Linux VM or using FreeBSD's containerization (jails) with specific images."
+echo "Installing 'docker' and 'docker-compose' packages if available (these are often clients or tools to manage VMs)."
+sudo pkg install -y docker docker-compose
+echo "Refer to FreeBSD documentation for full Docker setup."
+
+# --- Deno ---
+echo "Installing Deno..."
+# Deno's official install script might rely on Linux-specifics for .deno path or shell integration.
+# Check Deno's FreeBSD support if issues arise.
+curl -fsSL https://deno.land/install.sh | sh
+export DENO_INSTALL="$HOME/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+# --- Taskbook (via Deno) ---
+echo "Installing Taskbook..."
+deno install -g --allow-read --allow-write --allow-env --allow-net npm:taskbook
+
+# --- usql (Universal SQL CLI via Go) ---
+echo "Installing usql..."
+go install github.com/xo/usql@latest
+
+# --- Oh My Zsh ---
+echo "Installing Oh My Zsh..."
+CHSH=no RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+
+echo "Installing Oh My Zsh plugins..."
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
+git clone "https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv.git" "${ZSH_CUSTOM}/plugins/autoswitch_virtualenv"
+
+echo "Configuring Oh My Zsh plugins in .zshrc..."
+sed -i.bak 's/^plugins=(git)$/plugins=(git zsh-syntax-highlighting zsh-autosuggestions autoswitch_virtualenv sudo)/' ~/.zshrc
+
+# --- Rust ---
+echo "Installing Rust..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+. "$HOME/.cargo/env" # Source for sh
+
+# --- Tauri Dependencies ---
+echo "Installing Tauri dependencies for FreeBSD (Best Effort)..."
+echo "Tauri relies heavily on GTK and WebKit. Ensure your X11 and desktop environment are set up."
+# build-essential equivalent: gmake, clang (often default), pkgconf
+# libssl-dev -> openssl
+# libayatana-appindicator3-dev -> No direct equivalent, tray icon support might differ.
+# librsvg2-dev -> librsvg2
+sudo pkg install -y \
+    webkit2-gtk3 \
+    gmake pkgconf automake autoconf libtool \
+    curl wget file \
+    libxdo \
+    openssl \
+    librsvg2 \
+    libappindicator # if available, otherwise tray might not work as expected
+# Additional dev libraries often needed for GTK apps:
+sudo pkg install -y gtk3 glib2 cairo pango atk gdk-pixbuf2
+
+# --- Tauri App & CLI ---
+echo "Installing create-tauri-app and tauri-cli..."
+cargo install create-tauri-app --locked
+cargo install tauri-cli --version '^2.0.0-beta' --locked
+
+# --- Trunk ---
+echo "Installing Trunk..."
+cargo install trunk --locked
+
+# --- WASM Target for Rust ---
+echo "Adding WASM target for Rust..."
+rustup target add wasm32-unknown-unknown
+
+echo "---------------------------------------------------------------------"
+echo "Setup script finished for FreeBSD. Review output for any errors."
+echo "PATHs for Go, Deno, Cargo, NVM need to be in your shell profile (.shrc, .profile, .zshrc)."
+echo "A new terminal session or sourcing your profile is likely required."
+echo "Docker and Tauri setup on FreeBSD can be complex and may require additional manual configuration."
+echo "---------------------------------------------------------------------"

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Install FIDO2 development libraries
+sudo dnf install -y libfido2-devel
+

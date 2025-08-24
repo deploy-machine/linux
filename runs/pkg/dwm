@@ -1,0 +1,54 @@
+#!/bin/sh # Using sh for broader compatibility
+
+# Ensure DEV_ENV_HOME is set
+if [ -z "$DEV_ENV_HOME" ]; then
+  echo "Error: DEV_ENV_HOME is not set. Please set it to your development directory."
+  exit 1
+fi
+
+# Install dependencies
+# build-essential equivalent: gmake, clang (default compiler), pkgconf
+# xorg meta-package provides many X11 libs
+sudo pkg install -y \
+    rofi libxkbcommon xterm gmake pkgconf libXft harfbuzz gd libX11 libXinerama \
+    webkit2-gtk3 dash imlib2 \
+    xorg-server-devel # Provides X11 dev headers, or just 'xorg' for full set
+
+# Get CPU Core count
+num_cores=$(sysctl -n hw.ncpu)
+
+# Go to dwm
+cd "$DEV_ENV_HOME/dwm" || { echo "Failed to cd into $DEV_ENV_HOME/dwm"; exit 1; }
+
+# Run make (use gmake on FreeBSD for GNU Makefiles)
+echo "Building dwm..."
+gmake
+
+# Install dwm
+echo "Installing dwm..."
+sudo gmake install -j"$num_cores"
+
+# Go to st
+cd "$DEV_ENV_HOME/st" || { echo "Failed to cd into $DEV_ENV_HOME/st"; exit 1; }
+
+# Run make (use gmake)
+echo "Building st..."
+gmake
+
+# Install st
+echo "Installing st..."
+sudo gmake install -j"$num_cores"
+
+# Setup rofi theme
+echo "Setting up Rofi theme..."
+mkdir -p "$HOME/.config/rofi" # Use $HOME for POSIX sh compatibility
+cp -R "$DEV_ENV_HOME/rofi/"* "$HOME/.config/rofi/"
+
+# Copy dwm scripts
+echo "Copying dwm scripts..."
+mkdir -p "$HOME/.config/scripts"
+cp -R "$DEV_ENV_HOME/scripts/"* "$HOME/.config/scripts/"
+
+echo "DWM, ST, and Rofi setup script finished."
+
+sudo cp $DEV_ENV_HOME/xsession/dwm.desktop /usr/share/xsessions/dwm.desktop

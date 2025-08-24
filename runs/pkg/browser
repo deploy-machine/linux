@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Microsoft Edge installation is skipped as the current method is for .deb packages
+# and Microsoft Edge is not officially supported on FreeBSD.
+
+# Install firefox as a flatpak
+# Note: Flatpak on FreeBSD requires prior setup of the Linux compatibility layer.
+flatpak install -y flathub org.mozilla.firefox

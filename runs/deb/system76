@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Add the system76 repository
+sudo apt-add-repository -y ppa:system76-dev/stable
+
+# Update sources
+sudo apt update
+
+# Install software
+sudo apt install -y system76-firmware system76-power system76-driver system76-driver-nvidia system76-dkms
+
+# Don't forget about pesign...
+sudo apt install -y pesign
+
+# Run this as well (with the correct kernel that fails after MOKing)
+# sudo pesign /boot/vmlinuz-6.12.10-76061203-generic
+# save the hash and use with the correct hash:
+# sudo mokutil --import-hash 233434asdar34ed38rdadj

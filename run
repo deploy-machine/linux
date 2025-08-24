@@ -1,0 +1,137 @@
+#!/bin/sh
+
+export DEV_ENV_HOME="/home/simbaclaws/dev"
+
+# Get script directory
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+
+# Default values
+grep_pattern="" # Renamed from grep to avoid conflict with the command
+dry_run="0"
+pkg_mgr_dir="" # Will hold the package manager specific directory name
+
+# Define a specific order of scripts to run when no pattern is provided
+ordered_scripts="authentication vpn flatpak passwords gtk speed tts libs browser files wallpaper yubico picom tray dev neovim fun font night-light chat notifications asciicam"
+
+# Log function
+log() {
+    if [ "$dry_run" = "1" ]; then
+        echo "[DRY_RUN]: $1"
+    else
+        echo "$1"
+    fi
+}
+
+# --- Determine Package Manager ---
+# Uses `command -v` which is POSIX compliant and checks if a command exists
+# Debian Derrivatives
+if command -v apt >/dev/null 2>&1; then
+    pkg_mgr_dir="deb"
+# Arch Derrivatives
+elif command -v pacman >/dev/null 2>&1; then
+    pkg_mgr_dir="pacman"
+# RPM Derrivatives
+elif command -v dnf >/dev/null 2>&1; then
+    pkg_mgr_dir="dnf"
+# RPM Derrivatives
+elif command -v yum >/dev/null 2>&1; then
+    pkg_mgr_dir="dnf"
+# OpenSUSE
+elif command -v zypper >/dev/null 2>&1; then
+    pkg_mgr_dir="zypper"
+# BSD Derrivatives
+elif command -v pkg >/dev/null 2>&1; then
+    pkg_mgr_dir="pkg" 
+else
+    log "ERROR: Could not determine a supported package manager."
+    log "Please create a subdirectory in '$script_dir/runs/' for your system (e.g., 'generic') and update this script or ensure 'apt', 'pacman', 'dnf', 'yum', or 'zypper' is in your PATH."
+    exit 1
+fi
+
+log "Detected package manager type: $pkg_mgr_dir. Scripts will be sourced from 'runs/$pkg_mgr_dir/'"
+
+# Define the target runs directory based on the detected package manager
+target_runs_subdir="runs/$pkg_mgr_dir"
+distro_specific_runs_dir="$script_dir/$target_runs_subdir"
+
+if [ ! -d "$distro_specific_runs_dir" ]; then
+    log "ERROR: Directory '$distro_specific_runs_dir' does not exist."
+    log "Please create it and add your distro-specific scripts there."
+    exit 1
+fi
+
+# --- Parse Arguments ---
+while [ $# -gt 0 ]; do
+    echo "ARG: \"$1\""
+    if [ "$1" = "--dry" ]; then
+        dry_run="1"
+    else
+        grep_pattern="$1" # Store the pattern here
+    fi
+    shift
+done
+
+log "RUN: dry_run: $dry_run -- grep_pattern: '$grep_pattern'"
+
+# Find executable files in $distro_specific_runs_dir
+# Note: This find is mainly for the 'grep' case.
+# For the ordered list, we construct paths directly.
+executable_scripts_in_distro_dir=$(find "$distro_specific_runs_dir" -mindepth 1 -maxdepth 1 -type f -executable)
+
+# If no grep pattern is passed, use the defined order
+if [ -z "$grep_pattern" ]; then
+    log "No specific script pattern provided, running scripts in predefined order from '$target_runs_subdir':"
+    # Iterate over ordered scripts
+    for ordered_script_name in $ordered_scripts; do
+        # Find the full path of the script in the distro-specific runs directory
+        full_path="$distro_specific_runs_dir/$ordered_script_name"
+        if [ -f "$full_path" ] && [ -x "$full_path" ]; then
+            log "Running script: $full_path"
+            if [ "$dry_run" = "0" ]; then
+                "$full_path"
+            fi
+        else
+            # It's okay if some ordered scripts don't exist for a particular distro
+            log "Script $full_path not found or not executable in '$target_runs_subdir'. Skipping."
+        fi
+    done
+else
+    log "Specific script pattern '$grep_pattern' provided. Searching in '$target_runs_subdir':"
+    found_match=0
+    # Iterate over found executable files and only run the ones that match the grep pattern exactly
+    for s in $executable_scripts_in_distro_dir; do
+        if [ "$(basename "$s")" = "$grep_pattern" ]; then
+            log "Running script: $s"
+            if [ "$dry_run" = "0" ]; then
+                "$s"
+            fi
+            found_match=1
+            break # Found the exact match, no need to check further
+        else
+            # This log can be verbose if many scripts don't match.
+            # log "Pattern \"$grep_pattern\" did not match $(basename "$s")"
+            : # No-op, just to have something in the else
+        fi
+    done
+    if [ "$found_match" = "0" ]; then
+        log "No script exactly matching '$grep_pattern' found or executable in '$distro_specific_runs_dir'."
+    fi
+fi
+
+# Run the final dev script if it exists and is executable
+# Assuming this one is generic and not distro-specific, or you might want to adapt its path too.
+# If it IS meant to be distro specific, you'd need to integrate it into the logic above
+# or have DEV_ENV_HOME point to a script that itself has distro logic.
+final_dev_script="$DEV_ENV_HOME/dev"
+log "Attempting to run final script: $final_dev_script"
+if [ -f "$final_dev_script" ] && [ -x "$final_dev_script" ]; then
+    if [ "$dry_run" = "0" ]; then
+        "$final_dev_script"
+    else
+        log "Would run: $final_dev_script"
+    fi
+else
+    log "Final script $final_dev_script not found or not executable."
+fi
+
+log "All operations complete."

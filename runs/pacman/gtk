@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# A lightweight tool to switch gtk themes
+sudo pacman -S --noconfirm lxappearance
+
+# Don't forget about those pesky flatpak themes!
+sudo pacman -S --noconfirm xdg-desktop-portal-gtk
+
+# Install a common dark theme for Flatpaks
+sudo flatpak install --noninteractive flathub org.gtk.Gtk3theme.Adwaita-dark
+
+# Allow Flatpaks to access GTK3 config (read-only)
+sudo flatpak override --filesystem=xdg-config/gtk-3.0:ro
+
+# Set the GTK_THEME environment variable for Flatpaks
+sudo flatpak override --env GTK_THEME=Adwaita-dark

@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Script to install yay AUR helper on Arch Linux
+
+# Ensure the script is not run as root
+if [ "$EUID" -eq 0 ]; then
+  echo "Please do not run this script as root. makepkg should not be run as root."
+  exit 1
+fi
+
+# Update package database and install dependencies
+echo "Updating package database and installing dependencies (git, base-devel)..."
+sudo pacman -S --needed --noconfirm git base-devel
+
+# Create a directory for building AUR packages if it doesn't exist
+# Using a temporary directory is also a good option for a single build
+BUILD_DIR=$(mktemp -d --suffix=_yay_build)
+echo "Using temporary build directory: $BUILD_DIR"
+
+# Navigate to the build directory
+cd "$BUILD_DIR"
+
+# Clone the yay git repository from AUR
+echo "Cloning yay repository from AUR..."
+git clone https://aur.archlinux.org/yay.git
+
+# Change into the yay directory
+cd yay
+
+# Build and install yay using makepkg
+# The -si flags mean:
+# -s: Sync dependencies (install missing dependencies)
+# -i: Install the package after a successful build
+# --noconfirm: Do not ask for confirmation before installing
+echo "Building and installing yay..."
+makepkg -si --noconfirm
+
+# Go back to the original directory
+cd ..
+
+# Clean up the build directory (optional)
+echo "Cleaning up build directory..."
+rm -rf "$BUILD_DIR"
+
+echo "yay installation complete!"
+echo "You can now use 'yay' to install packages from AUR, e.g., 'yay -S package-name'."

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Install preload
+# Preload is Linux-specific
+
+# Disable plymouth
+# GRUB is not default on FreeBSD; uses BSD bootloader. Plymouth is Linux-specific.
+
+# Uninstall snaps
+# Snapd is Linux-specific.
+
+# Don't let the network stall the boot process
+# systemd is not used on FreeBSD; NetworkManager is also not standard.
+

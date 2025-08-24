@@ -1,0 +1,7 @@
+#!/bin/sh
+
+sudo apt -y update
+sudo apt -y install scrot bat zip pulsemixer pulseaudio-utils g++ unzip curl wget git apt-transport-https ca-certificates software-properties-common ripgrep xclip jq tldr shutter python3-pip shellcheck mpv ffmpeg brotli 7zip meson ninja-build
+
+mkdir -p ~/.local/bin
+ln -s /usr/bin/batcat ~/.local/bin/bat

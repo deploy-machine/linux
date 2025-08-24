@@ -1,0 +1,38 @@
+#!/bin/sh
+
+echo "System76 Software Setup for FreeBSD"
+echo "---------------------------------"
+echo "System76 software (firmware, power management, Linux drivers, DKMS modules)"
+echo "is specific to Linux-based operating systems and System76 hardware."
+echo "These components are not applicable or available on FreeBSD."
+echo ""
+echo "This script will not install any System76-specific software."
+echo "'pesign' is also Linux-specific for Secure Boot with shim, not standard on FreeBSD."
+echo ""
+
+# Update sources (standard practice)
+# echo "Updating package database..."
+# sudo pkg update
+
+# Placeholder for any relevant FreeBSD equivalents if they existed
+# echo "No System76-specific software to install on FreeBSD."
+
+# Information about NVIDIA drivers on FreeBSD
+echo "For NVIDIA graphics on FreeBSD, install drivers from ports or packages:"
+echo "# sudo pkg install nvidia-driver nvidia-xconfig nvidia-settings (example)"
+echo "Refer to the FreeBSD Handbook for NVIDIA driver installation."
+echo ""
+
+# pesign is not typically used on FreeBSD in this context.
+# echo "# sudo pkg install pesign (if a port exists and is needed for a specific use case)"
+
+# MOK Utility information (Linux specific)
+echo "---------------------------------------------------------------------------"
+echo "NOTE: Secure Boot & MOK Utility"
+echo "The pesign and mokutil commands mentioned in the original script are for"
+echo "Linux systems using GRUB/shim with Secure Boot. FreeBSD has its own"
+echo "bootloader and Secure Boot mechanisms if supported/configured."
+echo "---------------------------------------------------------------------------"
+
+echo "System76 software installation script (not applicable for FreeBSD) finished."
+

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Install onedrive (using yay for AUR) and pcmanfm
+# onedrive-abraunegg is a common client available in AUR.
+yay -S --noconfirm onedrive-abraunegg pcmanfm
+
+# Run onedrive for setup
+# The executable name might be 'onedrive' or specific to the client version.
+# For onedrive-abraunegg, the command is typically 'onedrive'
+onedrive
+
+# Enable onedrive for auto sync
+systemctl enable --user onedrive
+
+# Start syncing
+systemctl start --user onedrive
+

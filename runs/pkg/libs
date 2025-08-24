@@ -1,0 +1,13 @@
+#!/bin/sh
+
+sudo pkg update
+sudo pkg install -y scrot bat zip pulsemixer pulseaudio-utils gcc unzip curl wget git ca_root_nss ripgrep xclip jq tldr shutter py39-pip hs-shellcheck mpv ffmpeg brotli p7zip meson ninja
+
+mkdir -P $HOME/personal/fzf
+
+git clone https://github.com/junegunn/fzf.git $HOME/personal/fzf
+env SHELL=/bin/sh $HOME/personal/fzf/install # Explicitly use sh for FreeBSD if default shell is csh/tcsh
+
+mkdir -p ~/.local/bin
+ln -s /usr/local/bin/bat ~/.local/bin/bat
+

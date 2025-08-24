@@ -1,0 +1,10 @@
+DISTRO_WALLPAPER="od_arch.png"
+~/xprofile1
+xrdb merge ~/.Xresources
+xset r rate 200 50 &
+picom -b --experimental-backends &
+nm-applet &
+redshift &
+feh --bg-fill ~/dev/wallpapers/$DISTRO_WALLPAPER &
+dash ~/.config/scripts/bar.sh &
+/usr/libexec/polkit-mate-authentication-agent-1 &

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Install Notification Daemon (dunst)
+sudo dnf install -y dunst
+

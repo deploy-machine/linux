@@ -1,0 +1,158 @@
+#!/bin/sh
+
+# Ensure DEV_ENV_HOME is set
+if [ -z "$DEV_ENV_HOME" ]; then
+  echo "Error: DEV_ENV_HOME is not set. Please set it to your development directory."
+  exit 1
+fi
+
+# Install wallpaper software, imagick and ffmpeg
+# ImageMagick might be versioned on FreeBSD (e.g., ImageMagick7)
+sudo pkg install -y feh ffmpeg imagemagick
+
+XPROFILE_FILE="$DEV_ENV_HOME/env/.xprofile"
+
+TARGET_WALLPAPER=""
+DETECTED_OS_NAME="" # For user feedback
+
+# --- 1. OS Detection ---
+echo "Detecting operating system..."
+
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_PRIMARY_ID=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+    DETECTED_OS_NAME="$PRETTY_NAME"
+
+    case "$OS_PRIMARY_ID" in
+        ubuntu) TARGET_WALLPAPER="od_ubuntu.png" ;;
+        debian) TARGET_WALLPAPER="od_debian.png" ;;
+        fedora) TARGET_WALLPAPER="od_fedora.png" ;;
+        arch) TARGET_WALLPAPER="od_arch.png" ;;
+        artix) TARGET_WALLPAPER="od_artix.png" ;;
+        endeavouros) TARGET_WALLPAPER="od_endeavouros.png" ;;
+        gentoo) TARGET_WALLPAPER="od_gentoo.png" ;;
+        kali) TARGET_WALLPAPER="od_kali.png" ;;
+        manjaro) TARGET_WALLPAPER="od_manjaro.png" ;;
+        linuxmint|mint) TARGET_WALLPAPER="od_mint.png" ;;
+        nixos) TARGET_WALLPAPER="od_nixos.png" ;;
+        rhel) TARGET_WALLPAPER="od_rhel.png" ;;
+        void) TARGET_WALLPAPER="od_void.png" ;;
+        guix|guixsd) TARGET_WALLPAPER="od_gnu.png" ;;
+        opensuse-leap) TARGET_WALLPAPER="od_leap.png" ;;
+        opensuse-tumbleweed) TARGET_WALLPAPER="od_tumbleweed.png" ;;
+        *)
+            OS_ID_LIKE_LOWER=$(echo "$ID_LIKE" | tr '[:upper:]' '[:lower:]')
+            if [ -n "$OS_ID_LIKE_LOWER" ]; then # POSIX test
+                echo "Primary OS ID '$OS_PRIMARY_ID' not directly mapped. Checking ID_LIKE ('$OS_ID_LIKE_LOWER')."
+                # POSIX compliant checks:
+                if echo "$OS_ID_LIKE_LOWER" | grep -q "ubuntu" && [ "$OS_PRIMARY_ID" != "linuxmint" ]; then
+                    TARGET_WALLPAPER="od_ubuntu.png"
+                    DETECTED_OS_NAME="$PRETTY_NAME (identified as Ubuntu-like via ID_LIKE)"
+                elif echo "$OS_ID_LIKE_LOWER" | grep -q "debian" && [ "$OS_PRIMARY_ID" != "ubuntu" ] && [ "$OS_PRIMARY_ID" != "linuxmint" ]; then
+                    TARGET_WALLPAPER="od_debian.png"
+                    DETECTED_OS_NAME="$PRETTY_NAME (identified as Debian-like via ID_LIKE)"
+                elif echo "$OS_ID_LIKE_LOWER" | grep -q "arch" && ! (echo "$OS_PRIMARY_ID" | grep -E -q "^(manjaro|endeavouros|artix)$"); then # grep -E for |
+                    TARGET_WALLPAPER="od_arch.png"
+                    DETECTED_OS_NAME="$PRETTY_NAME (identified as Arch-like via ID_LIKE)"
+                elif echo "$OS_ID_LIKE_LOWER" | grep -q "fedora" && [ "$OS_PRIMARY_ID" != "rhel" ]; then
+                    TARGET_WALLPAPER="od_fedora.png"
+                    DETECTED_OS_NAME="$PRETTY_NAME (identified as Fedora-like via ID_LIKE)"
+                elif echo "$OS_ID_LIKE_LOWER" | grep -q "suse" && ! (echo "$OS_PRIMARY_ID" | grep -E -q "^(opensuse-leap|opensuse-tumbleweed)$"); then # grep -E for |
+                    TARGET_WALLPAPER="od_leap.png"
+                    DETECTED_OS_NAME="$PRETTY_NAME (identified as openSUSE-like via ID_LIKE, mapped to Leap)"
+                fi
+            fi
+            if [ -z "$TARGET_WALLPAPER" ]; then
+                echo "OS '$OS_PRIMARY_ID' ($PRETTY_NAME) is not explicitly mapped, and ID_LIKE ('$OS_ID_LIKE_LOWER') did not yield a specific match."
+                TARGET_WALLPAPER="od_gnu.png"
+                DETECTED_OS_NAME="$PRETTY_NAME (using generic od_gnu.png wallpaper as fallback)"
+            fi
+            ;;
+    esac
+elif uname -s >/dev/null 2>&1; then # POSIX check for uname functionality
+    KERNEL_NAME_LOWER=$(uname -s | tr '[:upper:]' '[:lower:]')
+    DETECTED_OS_NAME=$(uname -s)
+    case "$KERNEL_NAME_LOWER" in
+        linux)
+            DETECTED_OS_NAME="Linux (unknown distribution, /etc/os-release missing)"
+            TARGET_WALLPAPER="od_gnu.png"
+            ;;
+        freebsd)
+            TARGET_WALLPAPER="od_freebsd.png"
+            ;;
+        openbsd)
+            TARGET_WALLPAPER="od_openbsd.png"
+            ;;
+        darwin)
+            TARGET_WALLPAPER="od_apple.png"
+            ;;
+        *)
+            DETECTED_OS_NAME="Unknown OS (kernel: $KERNEL_NAME_LOWER)"
+            TARGET_WALLPAPER="od_gnu.png"
+            ;;
+    esac
+else
+    echo "ERROR: Cannot determine operating system."
+    exit 1
+fi
+
+# --- 2. Wallpaper Update Logic ---
+if [ -z "$TARGET_WALLPAPER" ]; then
+    echo "CRITICAL ERROR: TARGET_WALLPAPER variable is empty after OS detection for '$DETECTED_OS_NAME'."
+    exit 1
+fi
+
+echo "Detected OS: $DETECTED_OS_NAME."
+echo "Target wallpaper will be: $TARGET_WALLPAPER"
+
+if [ ! -f "$XPROFILE_FILE" ]; then
+    echo "ERROR: .xprofile file not found at '$XPROFILE_FILE'"
+    exit 1
+fi
+
+if grep -Fq "DISTRO_WALLPAPER=\"${TARGET_WALLPAPER}\"" "$XPROFILE_FILE"; then
+    echo "Wallpaper in '$XPROFILE_FILE' is already set to '$TARGET_WALLPAPER'. No changes needed."
+    exit 0
+fi
+
+echo "Wallpaper in '$XPROFILE_FILE' needs to be updated."
+
+BACKUP_FILE="${XPROFILE_FILE}.$(date +%Y%m%d_%H%M%S).bak"
+cp "$XPROFILE_FILE" "$BACKUP_FILE"
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to create backup file at '$BACKUP_FILE'."
+    exit 1
+fi
+echo "Backup of '$XPROFILE_FILE' created at '$BACKUP_FILE'"
+
+# --- 3. Perform the replacement using sed ---
+TMP_FILE=$(mktemp)
+if [ -z "$TMP_FILE" ]; then
+    echo "ERROR: Failed to create a temporary file."
+    exit 1
+fi
+
+if sed "s|^DISTRO_WALLPAPER=.*|DISTRO_WALLPAPER=\"${TARGET_WALLPAPER}\"|" "$XPROFILE_FILE" > "$TMP_FILE"; then
+    if [ -s "$TMP_FILE" ] && grep -Fq "DISTRO_WALLPAPER=\"${TARGET_WALLPAPER}\"" "$TMP_FILE"; then
+        mv "$TMP_FILE" "$XPROFILE_FILE"
+        if [ $? -eq 0 ]; then
+            echo "SUCCESS: Wallpaper in '$XPROFILE_FILE' updated to '$TARGET_WALLPAPER'."
+        else
+            echo "ERROR: Failed to move temporary file to '$XPROFILE_FILE'."
+            rm -f "$TMP_FILE"
+            exit 1
+        fi
+    else
+        echo "ERROR: sed command failed to correctly modify the file."
+        cat "$TMP_FILE"
+        rm -f "$TMP_FILE"
+        exit 1
+    fi
+else
+    echo "ERROR: sed command execution failed."
+    rm -f "$TMP_FILE"
+    exit 1
+fi
+
+exit 0
+

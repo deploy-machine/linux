@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install Notification Daemon
+sudo apt install -y notify-osd

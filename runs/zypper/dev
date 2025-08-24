@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# --- GitHub CLI ---
+echo "Installing GitHub CLI..."
+sudo zypper install -y -l gh
+
+# --- Development Stuff ---
+echo "Installing core development tools..."
+sudo zypper install -y -l lua53-luarocks ruby go python313 python313-pip python3-redis python313-virtualenv docker docker-compose docker-compose-switch zsh unixODBC-devel tmux php8 composer java-21-openjdk tree-sitter perl wget curl git unzip
+
+# --- NVM (Node Version Manager) ---
+echo "Installing NVM..."
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+echo "Installing LTS Node.js via NVM..."
+nvm install --lts
+nvm use --lts
+nvm alias default 'lts/*'
+
+# --- Tree-sitter CLI (via npm, if not installed by zypper) ---
+if ! command -v tree-sitter &> /dev/null; then
+    echo "Installing tree-sitter-cli via npm..."
+    npm install -g tree-sitter-cli
+fi
+
+# --- Docker Group & Service ---
+echo "Adding current user to docker group and enabling docker service..."
+
+sudo systemctl enable docker
+if [ $(id -gn) != docker ]; then
+  exec sg docker "$0 $*"
+fi
+sudo usermod -a -G docker $USER
+sudo systemctl restart docker
+
+echo "You may need to log out and log back in for docker group changes to take effect."
+
+# --- Deno ---
+echo "Installing Deno..."
+curl -fsSL https://deno.land/install.sh | sh
+export DENO_INSTALL="$HOME/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+# --- Taskbook (via Deno) ---
+echo "Installing Taskbook..."
+deno install -g --allow-read --allow-write --allow-env --allow-net npm:taskbook
+
+# --- usql (Universal SQL CLI via Go) ---
+echo "Installing usql..."
+go install github.com/xo/usql@latest
+
+# --- Oh My Zsh ---
+echo "Installing Oh My Zsh..."
+CHSH=no RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+
+echo "Installing Oh My Zsh plugins..."
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
+git clone "https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv.git" "${ZSH_CUSTOM}/plugins/autoswitch_virtualenv"
+
+cp $DEV_ENV_HOME/env/.zshrc $HOME/.zshrc
+
+echo "Configuring Oh My Zsh plugins in .zshrc..."
+sed -i 's/^plugins=(git)$/plugins=(git zsh-syntax-highlighting zsh-autosuggestions autoswitch_virtualenv sudo)/' ~/.zshrc
+
+# --- FZF ---
+mkdir -P $HOME/personal/fzf
+
+git clone https://github.com/junegunn/fzf.git $HOME/personal/fzf
+$HOME/personal/fzf/install
+
+# --- Rust ---
+echo "Installing Rust..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+source "$HOME/.cargo/env"
+
+# --- Tauri Dependencies ---
+echo "Installing Tauri dependencies for openSUSE..."
+sudo zypper install -y -l webkit2gtk4-devel curl wget file libX11-devel libXrandr-devel libXi-devel libXtst-devel xdotool libopenssl-devel libappindicator3-devel librsvg-devel dbus-1-glib-devel gtk3-devel
+sudo zypper install -y -l -t pattern devel_basis devel_C_C++
+
+# --- Tauri App & CLI ---
+echo "Installing create-tauri-app and tauri-cli..."
+cargo install create-tauri-app --locked
+cargo install tauri-cli --version '^2.0.0-beta' --locked
+
+# --- Trunk ---
+echo "Installing Trunk..."
+cargo install trunk --locked
+
+# --- WASM Target for Rust ---
+echo "Adding WASM target for Rust..."
+rustup target add wasm32-unknown-unknown
+
+echo "Finnished Dev Install" 

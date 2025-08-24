@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install vpn software
+sudo pacman -S --noconfirm wireguard-tools

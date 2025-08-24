@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install Tray
+sudo apt install -y trayer nm-tray

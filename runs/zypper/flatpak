@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Install flatpak
+sudo zypper install -y -l flatpak
+
+# Add flathub repository
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Add yourself to wheel and flatpak
+sudo usermod -aG wheel $USER
+sudo usermod -aG flatpak $USER
+
+# Add gnome software plugin flatpak
+sudo zypper install -y -l gnome-software
+

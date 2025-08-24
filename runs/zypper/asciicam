@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# --- Prerequisites OpenCV & Other Tools ---
+echo "Installing prerequisites..."
+sudo zypper install -y -l opencv cmake gcc-c++ python313-numpy wget unzip ffmpeg gtk3-devel libpng16-devel libtiff-devel libwebp-devel libopenssl-devel clang-devel alsa-devel yt-dlp rust cargo git ffmpeg-7-libavutil-devel ffmpeg-7-libavformat-devel ffmpeg-7-libavfilter-devel ffmpeg-7-libavdevice-devel
+
+# --- Install Cargo Tools ---
+echo "Installing tplay via cargo..."
+cargo install tplay
+
+export OPENCV_INCLUDE_PATHS="/usr/include/boost/computer/interop/opencv/"
+export OPENCV_LINK_PATHS="/usr/lib64/"
+export OPENCV_LINK_LIBS="libopencv_calib3d,libopencv_core,libopencv_dnn,libopencv_features,libopencv_flann,libopencv_highgui,libopencv_imgcodecs,libopencv_imgproc,libopencv_ml,libopencv_objdetect,libopencv_photo,libopencv_plot,libopencv_shape,libopencv_stitching,libopencv_tracking,libopencv_video,libopencv_videoio"
+
+echo "Installing ascii-webcam via cargo..."
+cargo install ascii-webcam
+
+# --- Cleanup ---
+echo "Script finished."
+

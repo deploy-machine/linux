@@ -1,0 +1,21 @@
+#!/bin/bash
+
+sudo dnf copr enable -y szydell/system76
+#sudo dnf install system76-driver
+
+# Update sources (dnf copr enable usually refreshes metadata)
+echo "Ensuring package metadata is up to date..."
+sudo dnf check-update
+
+# Install System76 software
+echo "Installing System76 software components..."
+sudo dnf install -y system76-power system76-firmware system76-dkms firmware-manager
+
+sudo systemctl enable --now system76-firmware-daemon
+sudo systemctl mask tuned.service
+sudo systemctl mask power-profiles-daemon.service
+sudo gpasswd -a $USER adm
+sudo systemctl enable com.system76.PowerDaemon.service system76-power-wake
+sudo systemctl start com.system76.PowerDaemon.service
+sudo systemctl enable dkms
+

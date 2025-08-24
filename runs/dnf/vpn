@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install vpn software
+sudo dnf install -y wireguard-tools

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install Trayer and NetworkManager Applet
+sudo pacman -S --noconfirm trayer network-manager-applet

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Install redshift
+sudo pacman -S --noconfirm redshift
+

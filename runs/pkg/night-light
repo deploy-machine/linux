@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Install redshift
+sudo pkg install -y redshift
+

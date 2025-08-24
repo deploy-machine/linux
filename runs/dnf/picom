@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Install dependencies for picom
+# Package names are dnf/Fedora equivalents
+sudo dnf install -y libXext-devel libxcb-devel libXfixes-devel xcb-util-renderutil-devel libXrandr-devel xcb-util-image-devel libXinerama-devel pixman-devel dbus-devel libconfig-devel mesa-libGL-devel pcre2-devel libevdev-devel uthash-devel libev-devel pcre-devel meson ninja-build git
+
+# Get picom with animations
+git clone https://gitlab.com/phyos/picom.git $HOME/picom
+
+# Build picom
+cd $HOME/picom || exit
+git submodule update --init --recursive
+meson --buildtype=release . build
+ninja -C build
+sudo ninja -C build install
+
+echo "Picom installation attempted."
+

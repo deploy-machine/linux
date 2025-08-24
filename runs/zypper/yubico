@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Install FIDO2 development libraries
+sudo zypper install -y -l libfido2-devel
+

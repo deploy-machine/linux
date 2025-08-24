@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Install Docker
+echo "Installing Docker..."
+sudo dnf remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine
+
+sudo dnf -y install dnf-plugins-core
+sudo dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+
+sudo dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+sudo systemctl enable --now docker
+
+# --- Development Stuff ---
+echo "Installing core development tools..."
+sudo dnf install -y gh luarocks ruby golang python3 python3-pip python3-virtualenv zsh unixODBC-devel tmux php-cli phpunit composer tree-sitter-cli perl wget curl git unzip java-latest-openjdk-devel
+
+chsh -s $(which zsh) $USER
+
+# Install iredis via pip
+echo "Installing iredis..."
+pip3 install iredis # Use pip3
+
+# --- NVM (Node Version Manager) ---
+echo "Installing NVM..."
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+echo "Installing LTS Node.js via NVM..."
+nvm install --lts
+nvm use --lts
+nvm alias default 'lts/*'
+
+# --- Tree-sitter CLI (via npm, if not installed by dnf) ---
+if ! command -v tree-sitter &> /dev/null; then
+    echo "Installing tree-sitter-cli via npm..."
+    npm install -g tree-sitter-cli
+fi
+
+# --- Deno ---
+echo "Installing Deno..."
+curl -fsSL https://deno.land/install.sh | sh
+export DENO_INSTALL="$HOME/.deno"
+export PATH="$DENO_INSTALL/bin:$PATH"
+
+# --- Taskbook (via Deno) ---
+echo "Installing Taskbook..."
+deno install -g --allow-read --allow-write --allow-env --allow-net npm:taskbook
+
+# --- usql (Universal SQL CLI via Go) ---
+echo "Installing usql..."
+go install github.com/xo/usql@latest
+
+# --- Oh My Zsh ---
+echo "Installing Oh My Zsh..."
+CHSH=no RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+
+echo "Installing Oh My Zsh plugins..."
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting
+git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions
+git clone "https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv.git" "${ZSH_CUSTOM}/plugins/autoswitch_virtualenv"
+
+cp $DEV_ENV_HOME/env/.zshrc $HOME/.zshrc
+
+echo "Configuring Oh My Zsh plugins in .zshrc..."
+sed -i 's/^plugins=(git)$/plugins=(git zsh-syntax-highlighting zsh-autosuggestions autoswitch_virtualenv sudo)/' ~/.zshrc
+
+# --- FZF ---
+mkdir -P $HOME/personal/fzf
+
+git clone https://github.com/junegunn/fzf.git $HOME/personal/fzf
+$HOME/personal/fzf/install
+
+# --- Rust ---
+echo "Installing Rust..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+source "$HOME/.cargo/env"
+
+# --- Tauri Dependencies ---
+echo "Installing Tauri dependencies for Fedora/RHEL..."
+sudo dnf install -y webkit2gtk4.1-devel curl wget file libX11-devel libXrandr-devel libXi-devel libXtst-devel libxdo-devel openssl-devel libappindicator-gtk3-devel librsvg2-devel dbus-devel gtk3-devel
+
+sudo dnf group install -y "development-tools"
+
+# --- Tauri App & CLI ---
+echo "Installing create-tauri-app and tauri-cli..."
+cargo install create-tauri-app --locked
+cargo install tauri-cli --version '^2.0.0-beta' --locked
+
+# --- Trunk ---
+echo "Installing Trunk..."
+cargo install trunk --locked
+
+# --- WASM Target for Rust ---
+echo "Adding WASM target for Rust..."
+rustup target add wasm32-unknown-unknown
+
+echo "Finnished Dev Install"

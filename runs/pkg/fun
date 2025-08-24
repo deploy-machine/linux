@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Update package database and install dependencies for somafm-cli
+sudo pkg update
+sudo pkg install -y git gmake gcc # Use gmake on FreeBSD
+
+# Install fun tools
+# onefetch and asciiquarium availability in FreeBSD ports should be checked.
+echo "Installing fun tools..."
+sudo pkg install -y \
+    yt-dlp bashtop neofetch htop glances cbonsai cmatrix lsd
+
+# For onefetch and asciiquarium, check FreeBSD ports:
+# Example: sudo pkg install onefetch asciiquarium (if available)
+echo "Note: Check availability of 'onefetch' and 'asciiquarium' in FreeBSD ports."
+
+# Install somafm cli
+if [ ! -d "$HOME/somafm" ]; then
+    git clone https://github.com/rockymadden/somafm-cli.git "$HOME/somafm"
+fi
+cd "$HOME/somafm" || exit
+gmake # Use gmake
+sudo gmake install # Use gmake
+

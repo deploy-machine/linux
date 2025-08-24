@@ -1,0 +1,1 @@
+ffmpeg -video_size 1920x1080 -framerate 60 -f x11grab -i $DISPLAY ~/Videos/$(date +%s)-record.mp4

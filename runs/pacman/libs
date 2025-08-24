@@ -1,0 +1,8 @@
+#!/bin/sh
+
+sh $DEV_ENV_HOME/runs/pacman/aur
+
+sudo pacman -S --noconfirm scrot bat zip pulsemixer gcc unzip curl wget git ca-certificates ripgrep xclip jq tldr python-pip shellcheck mpv ffmpeg brotli p7zip meson ninja
+
+mkdir -p ~/.local/bin
+ln -s /usr/bin/bat ~/.local/bin/bat

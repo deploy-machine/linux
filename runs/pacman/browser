@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Microsoft Edge installation is skipped as the current method is for .deb packages.
+# If a pacman-compatible version of Microsoft Edge becomes available,
+# the installation steps would be added here.
+
+# Install firefox as a flatpak
+flatpak install -y flathub org.mozilla.firefox

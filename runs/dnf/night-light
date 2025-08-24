@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Install redshift
+sudo dnf install -y redshift redshift-gtk
+

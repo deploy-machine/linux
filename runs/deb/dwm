@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# Install dependencies
+sudo apt install -y rofi libxkbcommon-x11-dev xterm build-essential libxft-dev libharfbuzz-dev libgd-dev xorg build-essential libx11-dev x11-xserver-utils libxinerama-dev libxft-dev libwebkit2gtk-4.1-dev dash libimlib2-dev 
+
+# Get CPU Core count
+num_cores=$(nproc)
+
+# Go to dwm
+cd $DEV_ENV_HOME/dwm
+
+# Run make
+make
+
+# Install dwm
+sudo make install -j"$num_cores"
+
+# Go to st
+cd $DEV_ENV_HOME/st
+
+# Run make
+make
+
+# Install st
+sudo make install -j"$num_cores"
+
+# Setup rofi theme
+sudo cp -R $DEV_ENV_HOME/rofi ~/.config/
+
+# Copy dwm scripts
+sudo cp -R $DEV_ENV_HOME/scripts ~/.config/
+
+# Make sure dwm is part of the gdm desktop sessions
+sudo cp $DEV_ENV_HOME/xsession/dwm.desktop /usr/share/xsessions/dwm.desktop

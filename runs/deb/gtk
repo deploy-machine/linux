@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# A lightweight tool to switch gtk themes so I can at the very least select a dark theme...
+sudo apt install lxappearance
+
+# Don't forget about those pesky flatpak themes!
+sudo apt install xdg-desktop-portal-gtk
+sudo flatpak install org.gtk.Gtk3theme.Adwaita-dark/x86_64/3.22
+sudo flatpak override --filesystem=xdg-config/gtk-3.0:ro
+
+sudo flatpak override --env GTK_THEME=Adwaita-dark

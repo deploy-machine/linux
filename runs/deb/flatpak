@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Install flatpak
+sudo apt install -y flatpak
+
+# Add flathub repository
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Add gnome software plugin flatpak
+sudo apt install -y gnome-software gnome-software-plugin-flatpak

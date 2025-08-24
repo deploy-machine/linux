@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Install onedrive and pcmanfm.
+sudo dnf install -y onedrive pcmanfm
+
+# Run onedrive for setup (assuming it's installed and in PATH)
+onedrive
+
+# Enable onedrive for auto sync (assuming a systemd service file is provided by the client)
+systemctl enable --user onedrive
+
+# Start syncing
+systemctl start --user onedrive
+

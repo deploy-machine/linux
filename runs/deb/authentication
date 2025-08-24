@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Install a polkit
+sudo apt install -y mate-polkit

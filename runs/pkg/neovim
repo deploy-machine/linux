@@ -1,0 +1,55 @@
+#!/bin/sh
+
+# Set default version
+version="v0.10.2" # Or use "stable" or "nightly" for tags
+
+# If $NVIM_VERSION is set, use its value
+if [ -n "$NVIM_VERSION" ]; then
+    version="$NVIM_VERSION"
+fi
+
+echo "Neovim version to install: \"$version\""
+
+if [ ! -d "$HOME/neovim" ]; then
+    echo "Cloning Neovim repository..."
+    git clone https://github.com/neovim/neovim.git "$HOME/neovim"
+else
+    echo "Neovim repository already exists at $HOME/neovim."
+fi
+
+# Install Dependencies for FreeBSD
+# Note: gmake is used instead of make on FreeBSD for GNU Make features.
+echo "Installing dependencies for Neovim..."
+sudo pkg install -y \
+    cmake gmake ninja gettext-tools libtool autoconf automake \
+    fd git unzip curl devel/pkgconf # pkgconf is often needed
+
+# Fetch and checkout the specified version
+echo "Fetching all tags and checking out version: $version..."
+git -C "$HOME/neovim" fetch --all --tags --prune
+git -C "$HOME/neovim" checkout "$version"
+
+# Get the number of CPU cores on FreeBSD
+num_cores=$(sysctl -n hw.ncpu)
+echo "Using $num_cores CPU cores for build."
+
+# Build and install neovim
+echo "Building Neovim..."
+# Use gmake on FreeBSD
+gmake -C "$HOME/neovim" clean
+gmake -C "$HOME/neovim" CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_EXTRA_FLAGS="-DCMAKE_INSTALL_PREFIX=$HOME/.local" -j"$num_cores"
+echo "Installing Neovim..."
+sudo gmake -C "$HOME/neovim" install -j"$num_cores"
+
+echo "Removing Neovim source directory..."
+rm -rf "$HOME/neovim"
+
+# Remove personal folder before installing anything
+# rm -rf $HOME/personal
+
+# Clone additional repositories
+#git clone https://github.com/Theprimeagen/harpoon.git "$HOME/personal/harpoon"
+# ... (other clones)
+
+echo "Neovim installation process complete."
+

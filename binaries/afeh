@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# More meaningful argument names
+GIF_PATH=/home/simbaclaws/dev/wallpapers/matrix
+SPEED=vfast
+ERR_MSG="Usage: $ $0 path-to-gif-directory
+	[Vv][Ss]low | [Ss]low | [Mm]ed | [Ff]ast] | [Vv][Ff]ast"
+
+# Get total image count of first argument and offset
+TOTAL_IMG=$((`ls $GIF_PATH | wc -l` - 1))
+
+case $SPEED in
+	[Vv][Ss]low | [Vv][Ss])
+		echo "Very slow animation speed selected"
+		SPEED=0.50
+		;;
+	[Ss]low | [Ss])
+		echo "Slow animation speed selected"
+		SPEED=0.35
+		;;
+	[Mm]ed | [Mm])
+		echo "Medium animation speed selected"
+		SPEED=0.20
+		;;
+	[Ff]ast | [Ff])
+		echo "Fast animation speed selected"
+		SPEED=0.15
+		;;
+	[Vv][Ff]ast | [Vv][Ff])
+		echo "Very fast animation speed selected"
+		SPEED=0.05
+		;;
+	*) # Else, exit
+		echo "Invalid input.  Please enter slow, medium, or fast."
+		echo $ERR_MSG
+		exit
+		;;
+esac
+
+# If everything above passes, execute the program
+echo "Initialization successful.  Press ctrl+c to exit."
+
+# Infinite loop
+COUNTER=0
+while :
+do
+	# Increment counter and reset
+	if [ $COUNTER -lt $TOTAL_IMG ]; then
+		feh --bg-fill $GIF_PATH/matrix-$COUNTER.png
+		COUNTER=$(($COUNTER + 1))
+		sleep $SPEED
+	elif [ $COUNTER -eq $TOTAL_IMG ]; then
+		feh --bg-fill $GIF_PATH/matrix-$COUNTER.png
+		COUNTER=0
+		sleep $SPEED
+	fi
+done

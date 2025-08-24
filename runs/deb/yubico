@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Install FIDO
+sudo apt install libfido2-dev

@@ -1,0 +1,8 @@
+#!/bin/sh
+
+sudo zypper refresh
+sudo zypper install -y -l scrot bat zip pulseaudio-utils gcc-c++ unzip curl wget git ca-certificates ripgrep xclip jq tealdeer python3-pip ShellCheck mpv ffmpeg brotli p7zip meson ninja
+
+mkdir -p ~/.local/bin
+ln -s /usr/bin/bat ~/.local/bin/bat
+

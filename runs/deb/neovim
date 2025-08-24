@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# Set default version
+version="v0.11.2"
+
+# If $NVIM_VERSION is set, use its value
+if [ -n "$NVIM_VERSION" ]; then
+	version="$NVIM_VERSION"
+fi
+
+echo "version: \"$version\""
+
+# Check if Neovim is already cloned
+if [ ! -d "$HOME/neovim" ]; then
+	git clone https://github.com/neovim/neovim.git "$HOME/neovim"
+fi
+
+# Install Dependencies
+sudo apt -y install cmake gettext lua5.1 liblua5.1-0-dev fd-find
+
+# Fetch and checkout the specified version
+git -C "$HOME/neovim" fetch --all
+git -C "$HOME/neovim" checkout "$version"
+
+# Get the number of CPU cores on your system
+num_cores=$(nproc)
+
+# Build and install neovim (with correct amount of CPU cores)
+make -C "$HOME/neovim" clean
+make -C "$HOME/neovim" CMAKE_BUILD_TYPE=RelWithDebInfo -j"$num_cores"
+sudo make -C "$HOME/neovim" install -j"$num_cores"
+
+# Remove neovim folder after it's installed
+rm -rf $HOME/neovim
+
+# Remove personal folder before installing anything
+# rm -rf $HOME/personal
+
+# Clone additional repositories
+#git clone https://github.com/Theprimeagen/harpoon.git "$HOME/personal/harpoon"
+#git clone https://github.com/Theprimeagen/vim-apm.git "$HOME/personal/vim-apm"
+#git clone https://github.com/Theprimeagen/vim-with-me.git "$HOME/personal/vim-with-me"
+#git clone https://github.com/Theprimeagen/vim-arcade.git "$HOME/personal/vim-arcade"
+#git clone https://github.com/nvim-lua/plenary.nvim.git "$HOME/personal/plenary"
+

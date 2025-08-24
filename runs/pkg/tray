@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Install Trayer
+# nm-tray (NetworkManager Applet) is Linux-specific and not typically used on FreeBSD.
+# FreeBSD uses different network management tools.
+sudo pkg install -y trayer
+
