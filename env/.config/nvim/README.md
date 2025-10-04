@@ -1,6 +1,4 @@
-# Neovim Configuration
+# 💤 LazyVim
 
-Mostly taken from: https://github.com/josean-dev/dev-environment-files
-
-With custom adjustments to make it work with windows 11.
-As well as a custom colorscheme that I like.
+A starter template for [LazyVim](https://github.com/LazyVim/LazyVim).
+Refer to the [documentation](https://lazyvim.github.io/installation) to get started.
