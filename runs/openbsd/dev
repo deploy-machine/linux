@@ -15,13 +15,20 @@ do_run() {
     if [ "$dry_run" = "0" ]; then "$@"; fi
 }
 
-# --- GitHub CLI: packaged, no apt keyring dance ---
 # --- Core development tools ---
 # build-essential: clang + make are in base. perl is in base.
 # python3-venv: venv is part of the python%3 package.
 # libtree-sitter-dev -> tree-sitter, tree-sitter-cli is packaged too (no npm -g needed).
 # nvm is replaced by the node package (see below). composer and deno verified packaged in 7.9.
-do_run doas pkg_add -I gh git curl wget unzip luarocks go python%3 py3-pip zsh tmux node tree-sitter tree-sitter-cli fzf composer || exit 1
+do_run doas pkg_add -I git curl wget unzip go python%3 py3-pip zsh tmux node tree-sitter tree-sitter-cli fzf composer deno || exit 1
+
+# --- GitHub CLI --- best effort: `gh` is not a package stem in 7.9. Try the
+# package anyway (name may differ), else build it with go (no JIT, ~/go/bin is fine).
+do_run doas pkg_add -I gh || do_run go install github.com/cli/cli/v2/cmd/gh@latest || log "WARN: gh install failed"
+
+# --- luarocks --- best effort: not found as `luarocks` in 7.9; OpenBSD flavours
+# it per lua version, so try the lua54 flavour spelling before giving up.
+do_run doas pkg_add -I luarocks--lua54 || do_run doas pkg_add -I luarocks || log "WARN: luarocks not available"
 
 # Versioned packages: pkg_add reports "Ambiguous" without the branch suffix.
 # php%8.4, ruby%3.3 and jdk%21 verified in 7.9 (ruby 3.3/3.4/4.0, jdk 11/17/21/25 available).
