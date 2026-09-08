@@ -21,9 +21,13 @@ do_run() {
 # the opencv crate's build script; ffmpeg/yt-dlp are runtime deps of tplay.
 do_run doas pkg_add -I opencv rust pkgconf cmake ffmpeg yt-dlp || exit 1
 
-# --- best effort: the opencv crate uses bindgen, which needs libclang from the
-# llvm package (not in base). Branch name unverified for 7.9. ---
-do_run doas pkg_add -I llvm || log "WARN: llvm (libclang) not available, opencv crate build will fail"
+# The opencv crate uses bindgen, which needs libclang from the llvm package (not
+# in base). 7.9 ships llvm 19/20/21, so the branch must be spelled out or pkg_add
+# reports "Ambiguous". The package installs under /usr/local/llvm21, which
+# clang-sys does not search on its own, hence LIBCLANG_PATH.
+do_run doas pkg_add -I llvm%21 || exit 1
+LIBCLANG_PATH=/usr/local/llvm21/lib
+export LIBCLANG_PATH
 
 # not applicable on OpenBSD: libasound2-dev (ALSA); audio is sndio(7).
 

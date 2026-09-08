@@ -1,7 +1,6 @@
 #!/bin/sh
 # OpenBSD 7.9 -- FIDO2 / YubiKey support
-# Tolerates failure on purpose in the best-effort block below.
-set -u
+set -eu
 
 dry_run="0"
 if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
@@ -16,10 +15,8 @@ do_run() {
 }
 
 # libfido2 (headers included; there is no separate -dev package on OpenBSD)
-do_run doas pkg_add -I libfido2 || exit 1
-
-# --- best effort: check with `pkg_info -Q yubi` ---
-do_run doas pkg_add -I yubikey-manager || log "WARN: yubikey-manager not available"
+# yubikey-manager verified packaged in 7.9
+do_run doas pkg_add -I libfido2 yubikey-manager
 
 # not applicable on OpenBSD: udev rules. There is no udev; FIDO tokens are
 # exposed by the fido(4) driver as /dev/fido/* and access is governed by the

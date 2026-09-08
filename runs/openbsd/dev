@@ -19,25 +19,24 @@ do_run() {
 # --- Core development tools ---
 # build-essential: clang + make are in base. perl is in base.
 # python3-venv: venv is part of the python%3 package.
-# libtree-sitter-dev -> tree-sitter. nvm is replaced by the node package (see below).
-do_run doas pkg_add -I gh git curl wget unzip luarocks go python%3 py3-pip zsh tmux node tree-sitter fzf || exit 1
+# libtree-sitter-dev -> tree-sitter, tree-sitter-cli is packaged too (no npm -g needed).
+# nvm is replaced by the node package (see below). composer and deno verified packaged in 7.9.
+do_run doas pkg_add -I gh git curl wget unzip luarocks go python%3 py3-pip zsh tmux node tree-sitter tree-sitter-cli fzf composer || exit 1
 
 # Versioned packages: pkg_add reports "Ambiguous" without the branch suffix.
-# Branches unverified for 7.9, check with `pkg_info -Q php`, `pkg_info -Q ruby`, `pkg_info -Q jdk`.
+# php%8.4 verified in 7.9; ruby/jdk branches unverified, check `pkg_info -Q ruby`, `pkg_info -Q jdk`.
 do_run doas pkg_add -I php%8.4 ruby%3.3 jdk%21 || exit 1
 
 # --- best effort ---
-do_run doas pkg_add -I unixODBC || log "WARN: unixODBC not available"
+# unixODBC is not packaged in 7.9; iodbc is the ODBC manager OpenBSD ships.
+do_run doas pkg_add -I iodbc || log "WARN: iodbc not available"
 # iredis: pip only. Fails under PEP 668 if py3-pip is marked externally managed.
 do_run pip3 install --user iredis || log "WARN: iredis (pip) failed"
-# composer: packaged on OpenBSD instead of the getcomposer.org installer
-do_run doas pkg_add -I composer || log "WARN: composer not available"
 
 # --- Node ---
 # nvm is not used: it needs bash and installs a JITting node under $HOME, which
 # violates W^X (only /usr/local is wxallowed). The node package is used instead.
-# npm -g installs under /usr/local, hence doas.
-do_run doas npm install -g tree-sitter-cli || log "WARN: npm install -g tree-sitter-cli failed"
+# tree-sitter-cli comes from the package above, not `npm install -g`.
 
 # --- Docker ---
 # not applicable on OpenBSD: there is no Docker (and podman is not an
@@ -45,13 +44,8 @@ do_run doas npm install -g tree-sitter-cli || log "WARN: npm install -g tree-sit
 
 # --- Deno / taskbook ---
 # Deno JITs (V8), so it must come from a package in /usr/local (W^X), never
-# from the deno.land install script into ~/.deno.
-# best effort: package availability unverified for 7.9.
-if do_run doas pkg_add -I deno; then
-    do_run deno install -g npm:taskbook || log "WARN: deno install taskbook failed"
-else
-    log "WARN: deno not available, skipping taskbook"
-fi
+# from the deno.land install script into ~/.deno (the deno package is installed above).
+do_run deno install -g npm:taskbook || log "WARN: deno install taskbook failed"
 
 # --- usql (universal sql cli) --- best effort, `-tags all` needs many cgo drivers
 do_run go install github.com/xo/usql@latest || log "WARN: go install usql failed"
@@ -82,12 +76,10 @@ log "Installing Oh My Zsh plugins..."
 # rustup has no OpenBSD host toolchain; the rust package provides cargo.
 do_run doas pkg_add -I rust || exit 1
 
-# --- Tauri dependencies --- best effort, names unverified for 7.9
+# --- Tauri dependencies --- (all verified packaged in 7.9)
 # libwebkit2gtk-4.1-dev -> webkitgtk41, libxdo-dev -> xdotool, librsvg2-dev -> librsvg,
 # libayatana-appindicator3-dev -> no equivalent.
-for pkg in webkitgtk41 gtk+3 librsvg xdotool; do
-    do_run doas pkg_add -I "$pkg" || log "WARN: $pkg not available"
-done
+do_run doas pkg_add -I webkitgtk41 gtk+3 librsvg xdotool || exit 1
 
 # --- Tauri / Trunk --- best effort (cargo builds, no JIT: ~/.cargo/bin is fine)
 do_run cargo install create-tauri-app --locked || log "WARN: cargo install create-tauri-app failed"
