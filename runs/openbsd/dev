@@ -24,7 +24,7 @@ do_run() {
 do_run doas pkg_add -I gh git curl wget unzip luarocks go python%3 py3-pip zsh tmux node tree-sitter tree-sitter-cli fzf composer || exit 1
 
 # Versioned packages: pkg_add reports "Ambiguous" without the branch suffix.
-# php%8.4 verified in 7.9; ruby/jdk branches unverified, check `pkg_info -Q ruby`, `pkg_info -Q jdk`.
+# php%8.4, ruby%3.3 and jdk%21 verified in 7.9 (ruby 3.3/3.4/4.0, jdk 11/17/21/25 available).
 do_run doas pkg_add -I php%8.4 ruby%3.3 jdk%21 || exit 1
 
 # --- best effort ---
