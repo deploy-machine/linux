@@ -18,7 +18,7 @@ do_run() {
 # No PPAs / `pkg update` on OpenBSD; the mirror comes from /etc/installurl.
 # gmake: the somafm-cli Makefile needs GNU make (as on FreeBSD); git for the clones.
 # rust/cmake/pkgconf: onefetch (cargo). bash/py3-psutil/coreutils/gsed: bashtop.
-do_run doas pkg_add -I gmake git rust cmake pkgconf bash py3-psutil coreutils gsed yt-dlp htop cmatrix lsd neofetch glances asciiquarium || exit 1
+do_run doas pkg_add -I gmake git rust cmake pkgconf bash py3-psutil coreutils gsed yt-dlp htop btop cmatrix lsd neofetch glances asciiquarium || exit 1
 
 # --- best effort: not packaged in 7.9 (checked with pkg_info -Q), built from source ---
 
@@ -39,8 +39,7 @@ fi
 
 # bashtop: a bash script that reads /proc on Linux and drives psutil elsewhere.
 # It expects GNU sed/coreutils and is not tested on OpenBSD; the same author's
-# successor btop is the real answer if packaged (check `pkg_info -Q btop`).
-do_run doas pkg_add -I btop || log "WARN: btop not available"
+# successor btop is packaged and installed above as the reliable option.
 if [ ! -d "$HOME/bashtop" ]; then
     do_run git clone https://github.com/aristocratos/bashtop.git "$HOME/bashtop"
 fi

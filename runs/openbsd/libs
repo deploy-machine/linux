@@ -29,12 +29,10 @@ do_run doas pkg_add -I bash rust scrot bat zip unzip curl wget git ripgrep xclip
 # The pulseaudio package is only a compatibility daemon and is not installed.
 
 # --- best effort: not packaged in 7.9 (checked with pkg_info -Q) ---
-# tldr: tealdeer is the rust client (installs the `tldr` command). Package if it
-# exists, otherwise cargo (no JIT, ~/.cargo/bin is fine).
-do_run doas pkg_add -I tealdeer || do_run cargo install tealdeer || log "WARN: tldr (tealdeer) failed"
-# shutter: perl/GTK with dozens of perl deps, not portable as a single binary.
-# flameshot is the closest packaged GUI (scrot is installed above regardless).
-do_run doas pkg_add -I flameshot || log "WARN: flameshot not available, try maim or use scrot"
+# tldr: tealdeer is the rust client (installs the `tldr` command); neither tldr
+# nor tealdeer is packaged, so cargo it is (no JIT, ~/.cargo/bin is fine).
+do_run cargo install tealdeer || log "WARN: cargo install tealdeer failed"
+# shutter: perl/GTK with dozens of perl deps, not packaged; scrot (above) is used instead.
 
 # not applicable on OpenBSD: `ln -s /usr/bin/batcat ~/.local/bin/bat`,
 # the package already installs the binary as /usr/local/bin/bat.
