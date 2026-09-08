@@ -1,0 +1,29 @@
+#!/bin/sh
+# OpenBSD 7.9 -- file manager and cloud sync
+# Tolerates failure on purpose in the best-effort block below.
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+do_run doas pkg_add -I pcmanfm || exit 1
+
+# --- best effort: the abraunegg onedrive client (D language) may not be packaged ---
+if do_run doas pkg_add -I onedrive; then
+    log "onedrive installed: run 'onedrive' once to authorise (interactive, not done here)."
+else
+    log "WARN: onedrive not available"
+fi
+
+# not applicable on OpenBSD: `systemctl enable/start --user onedrive`.
+# rcctl(8) only manages system services and onedrive ships no rc.d script,
+# so start it per session instead, e.g. `onedrive --monitor &` in ~/.xprofile.

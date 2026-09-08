@@ -1,0 +1,18 @@
+#!/bin/sh
+# OpenBSD 7.9 -- night light
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# Install redshift (redshift-gtk is not a separate package on OpenBSD)
+do_run doas pkg_add -I redshift

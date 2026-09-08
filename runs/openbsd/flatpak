@@ -1,0 +1,8 @@
+#!/bin/sh
+# OpenBSD 7.9 -- flatpak
+set -eu
+
+# not applicable on OpenBSD: there is no flatpak, snap or gnome-software.
+# Everything the Linux branches pull from flathub is installed natively
+# from packages in the other scripts (firefox in `browser`, etc.).
+echo "flatpak: not applicable on OpenBSD, nothing to do."

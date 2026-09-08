@@ -1,0 +1,99 @@
+#!/bin/sh
+# OpenBSD 7.9 -- development toolchain
+# Tolerates failure on purpose in the best-effort blocks below (marked).
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# --- GitHub CLI: packaged, no apt keyring dance ---
+# --- Core development tools ---
+# build-essential: clang + make are in base. perl is in base.
+# python3-venv: venv is part of the python%3 package.
+# libtree-sitter-dev -> tree-sitter. nvm is replaced by the node package (see below).
+do_run doas pkg_add -I gh git curl wget unzip luarocks go python%3 py3-pip zsh tmux node tree-sitter fzf || exit 1
+
+# Versioned packages: pkg_add reports "Ambiguous" without the branch suffix.
+# Branches unverified for 7.9, check with `pkg_info -Q php`, `pkg_info -Q ruby`, `pkg_info -Q jdk`.
+do_run doas pkg_add -I php%8.4 ruby%3.3 jdk%21 || exit 1
+
+# --- best effort ---
+do_run doas pkg_add -I unixODBC || log "WARN: unixODBC not available"
+# iredis: pip only. Fails under PEP 668 if py3-pip is marked externally managed.
+do_run pip3 install --user iredis || log "WARN: iredis (pip) failed"
+# composer: packaged on OpenBSD instead of the getcomposer.org installer
+do_run doas pkg_add -I composer || log "WARN: composer not available"
+
+# --- Node ---
+# nvm is not used: it needs bash and installs a JITting node under $HOME, which
+# violates W^X (only /usr/local is wxallowed). The node package is used instead.
+# npm -g installs under /usr/local, hence doas.
+do_run doas npm install -g tree-sitter-cli || log "WARN: npm install -g tree-sitter-cli failed"
+
+# --- Docker ---
+# not applicable on OpenBSD: there is no Docker (and podman is not an
+# equivalent). Use vmm(4)/vmd(8) from base to run Linux guests instead.
+
+# --- Deno / taskbook ---
+# Deno JITs (V8), so it must come from a package in /usr/local (W^X), never
+# from the deno.land install script into ~/.deno.
+# best effort: package availability unverified for 7.9.
+if do_run doas pkg_add -I deno; then
+    do_run deno install -g npm:taskbook || log "WARN: deno install taskbook failed"
+else
+    log "WARN: deno not available, skipping taskbook"
+fi
+
+# --- usql (universal sql cli) --- best effort, `-tags all` needs many cgo drivers
+do_run go install github.com/xo/usql@latest || log "WARN: go install usql failed"
+
+# --- Oh my zsh (idempotent) ---
+if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    log "Installing Oh My Zsh..."
+    if [ "$dry_run" = "0" ]; then
+        CHSH=no RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+fi
+
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+log "Installing Oh My Zsh plugins..."
+[ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || do_run git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+[ -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ] || do_run git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+[ -d "$ZSH_CUSTOM/plugins/autoswitch_virtualenv" ] || do_run git clone https://github.com/MichaelAquilina/zsh-autoswitch-virtualenv.git "$ZSH_CUSTOM/plugins/autoswitch_virtualenv"
+
+# The plugins line is already configured in env/.zshrc, which ./dev copies to
+# $HOME; the Linux `sed -i` step is therefore not needed (and BSD sed -i differs).
+
+# --- FZF ---
+# The fzf package is used instead of the git clone + ./install (which also
+# rewrites shell rc files). Shell integration lives in /usr/local/share/fzf.
+
+# --- Rust ---
+# rustup has no OpenBSD host toolchain; the rust package provides cargo.
+do_run doas pkg_add -I rust || exit 1
+
+# --- Tauri dependencies --- best effort, names unverified for 7.9
+# libwebkit2gtk-4.1-dev -> webkitgtk41, libxdo-dev -> xdotool, librsvg2-dev -> librsvg,
+# libayatana-appindicator3-dev -> no equivalent.
+for pkg in webkitgtk41 gtk+3 librsvg xdotool; do
+    do_run doas pkg_add -I "$pkg" || log "WARN: $pkg not available"
+done
+
+# --- Tauri / Trunk --- best effort (cargo builds, no JIT: ~/.cargo/bin is fine)
+do_run cargo install create-tauri-app --locked || log "WARN: cargo install create-tauri-app failed"
+do_run cargo install tauri-cli --version '^2.0.0' --locked || log "WARN: cargo install tauri-cli failed"
+do_run cargo install trunk --locked || log "WARN: cargo install trunk failed"
+
+# not applicable on OpenBSD: `rustup target add wasm32-unknown-unknown`.
+# Without rustup the wasm32 target is unavailable, so trunk cannot build for wasm.
+log "NOTE: wasm32-unknown-unknown target is not installable without rustup on OpenBSD."

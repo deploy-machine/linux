@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export DEV_ENV_HOME="/home/simbaclaws/dev"
+export DEV_ENV_HOME="${DEV_ENV_HOME:-$(cd "$(dirname "$0")" && pwd)}"
 
 # Get script directory
 script_dir="$(cd "$(dirname "$0")" && pwd)"
@@ -24,8 +24,12 @@ log() {
 
 # --- Determine Package Manager ---
 # Uses `command -v` which is POSIX compliant and checks if a command exists
+# OpenBSD has no `pkg` command and `command -v` cannot tell the BSDs apart,
+# so it is detected explicitly (and first) via uname(1).
+if [ "$(uname -s)" = "OpenBSD" ]; then
+    pkg_mgr_dir="openbsd"
 # Debian Derrivatives
-if command -v apt >/dev/null 2>&1; then
+elif command -v apt >/dev/null 2>&1; then
     pkg_mgr_dir="deb"
 # Arch Derrivatives
 elif command -v pacman >/dev/null 2>&1; then

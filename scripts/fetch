@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Requires bash (printf -v, ${!var}, brace ranges): pkg install bash / pkg_add bash on the BSDs
 clear
 c=3 b=4
 for j in c b; do

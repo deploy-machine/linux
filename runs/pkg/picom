@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Install dependencies for picom
 # Package names are FreeBSD pkg equivalents

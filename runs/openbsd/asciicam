@@ -1,0 +1,32 @@
+#!/bin/sh
+# OpenBSD 7.9 -- ascii webcam / media player
+# Tolerates failure on purpose: the cargo crates bind against OpenCV/libclang
+# and are best effort on OpenBSD.
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# OpenBSD packages OpenCV: the from-source build of the other branches is not used.
+# rust provides cargo (rustup has no OpenBSD host support). pkgconf is needed by
+# the opencv crate's build script; ffmpeg/yt-dlp are runtime deps of tplay.
+do_run doas pkg_add -I opencv rust pkgconf cmake ffmpeg yt-dlp || exit 1
+
+# --- best effort: the opencv crate uses bindgen, which needs libclang from the
+# llvm package (not in base). Branch name unverified for 7.9. ---
+do_run doas pkg_add -I llvm || log "WARN: llvm (libclang) not available, opencv crate build will fail"
+
+# not applicable on OpenBSD: libasound2-dev (ALSA); audio is sndio(7).
+
+# cargo binaries land in ~/.cargo/bin; they do not JIT, so W^X is not an issue.
+do_run cargo install tplay || log "WARN: cargo install tplay failed"
+do_run cargo install ascii-webcam || log "WARN: cargo install ascii-webcam failed"

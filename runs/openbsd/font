@@ -1,0 +1,45 @@
+#!/bin/sh
+# OpenBSD 7.9 -- nerd fonts
+# Tolerates failure on purpose: one bad font download must not abort the rest.
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# fontconfig (fc-cache) and mkfontscale are part of base Xenocara; only unzip
+# is a package. Downloads use ftp(1) from base instead of wget.
+do_run doas pkg_add -I unzip || exit 1
+
+version='2.1.0'
+fonts_dir="$HOME/.local/share/fonts"
+
+do_run mkdir -p "$fonts_dir"
+
+fonts="BitstreamVeraSansMono CodeNewRoman DroidSansMono FiraCode FiraMono Go-Mono Hack Hermit JetBrainsMono Meslo Noto Overpass ProggyClean RobotoMono SourceCodePro SpaceMono Ubuntu UbuntuMono"
+
+for font in $fonts; do
+    zip_file="${font}.zip"
+    download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v${version}/${zip_file}"
+
+    if [ -f "$fonts_dir/$zip_file" ]; then
+        log "Zip file $zip_file already exists, skipping download."
+    else
+        do_run ftp -o "$fonts_dir/$zip_file" "$download_url" || { log "WARN: download failed for $font"; rm -f "$fonts_dir/$zip_file"; continue; }
+    fi
+
+    # -n never overwrites, which keeps re-runs idempotent
+    do_run unzip -n -q "$fonts_dir/$zip_file" -d "$fonts_dir" || log "WARN: unzip failed for $font"
+done
+
+do_run mkfontscale "$fonts_dir"
+do_run mkfontdir "$fonts_dir"
+do_run fc-cache -f

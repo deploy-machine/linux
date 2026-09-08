@@ -1,0 +1,7 @@
+#!/bin/sh
+# OpenBSD 7.9 -- system76 firmware/power/driver packages
+set -eu
+
+# not applicable on OpenBSD: system76-* packages, dkms and pesign are
+# Linux only. Firmware on OpenBSD is handled by fw_update(8) from base.
+echo "system76: not applicable on OpenBSD, nothing to do."

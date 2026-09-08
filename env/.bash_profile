@@ -65,6 +65,6 @@ if [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]]; then
 	feh --bg-fill ~/Pictures/gowall/hokusai.jpg
 	picom -b --experimental-backends &
 fi
-source /home/simbaclaws/.deno/env
-source /home/simbaclaws/.local/share/bash-completion/completions/deno.bash
+[ -f "$HOME/.deno/env" ] && source "$HOME/.deno/env"
+[ -f "$HOME/.local/share/bash-completion/completions/deno.bash" ] && source "$HOME/.local/share/bash-completion/completions/deno.bash"
 

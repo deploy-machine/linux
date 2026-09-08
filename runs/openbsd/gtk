@@ -1,0 +1,21 @@
+#!/bin/sh
+# OpenBSD 7.9 -- gtk theme switcher
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# A lightweight tool to switch gtk themes
+do_run doas pkg_add -I lxappearance
+
+# not applicable on OpenBSD: the flatpak theme/override steps of the Linux
+# branches (xdg-desktop-portal-gtk, org.gtk.Gtk3theme.Adwaita-dark, flatpak override).

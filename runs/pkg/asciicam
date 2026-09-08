@@ -2,12 +2,13 @@
 
 # --- Prerequisites OpenCV & Other Tools ---
 echo "Installing prerequisites..."
+# llvm often provides libclang on FreeBSD; rust-nightly or rust, git for cargo
 sudo pkg install -y \
     cmake gmake wget unzip \
     ffmpeg gtk3 jpeg-turbo libpng libtiff webp \
-    openssl clang llvm # llvm often provides libclang on FreeBSD
+    openssl clang llvm \
     alsa-lib yt-dlp \
-    rust-nightly git # rust-nightly or rust, git for cargo
+    rust-nightly git
 
 # --- OpenCV Installation from Source ---
 OPENCV_VERSION="4.11.0"

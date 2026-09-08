@@ -1,0 +1,18 @@
+#!/bin/sh
+# OpenBSD 7.9 -- notification daemon
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# notify-osd (deb) is Ubuntu specific; dunst is what the FreeBSD branch uses too.
+do_run doas pkg_add -I dunst

@@ -1,0 +1,35 @@
+#!/bin/sh
+# OpenBSD 7.9 -- common libraries and cli tools
+# Tolerates failure on purpose in the best-effort block below.
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# No `apt update` equivalent: pkg_add reads the mirror from /etc/installurl.
+# g++ / build-essential: clang and make are in base, nothing to install.
+# apt-transport-https, ca-certificates, software-properties-common: not applicable on OpenBSD
+# (the CA bundle is in base at /etc/ssl/cert.pem).
+# bash is needed by scripts/fetch and scripts/cht.sh (they are bash scripts);
+# it installs to /usr/local/bin/bash, never /bin/bash.
+do_run doas pkg_add -I bash scrot bat zip unzip curl wget git ripgrep xclip jq shellcheck mpv ffmpeg brotli p7zip meson ninja py3-pip || exit 1
+
+# --- best effort: names unverified for 7.9, warn instead of abort ---
+# pulseaudio-utils/pulsemixer: audio on OpenBSD is sndio(7) from base; pulseaudio
+# exists only as a compatibility layer. tldr and shutter may not be packaged.
+for pkg in pulseaudio pulsemixer tldr shutter; do
+    do_run doas pkg_add -I "$pkg" || log "WARN: $pkg not available"
+done
+
+# not applicable on OpenBSD: `ln -s /usr/bin/batcat ~/.local/bin/bat`,
+# the package already installs the binary as /usr/local/bin/bat.
+do_run mkdir -p "$HOME/.local/bin"

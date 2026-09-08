@@ -1,0 +1,22 @@
+#!/bin/sh
+# OpenBSD 7.9 -- polkit authentication agent
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+# Print the command, execute it unless --dry
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# Install a polkit agent (same package name as the Linux branches)
+do_run doas pkg_add -I mate-polkit
+
+# NOTE: the agent binary lives in /usr/local/libexec on OpenBSD, not /usr/libexec
+# as referenced by env/.xprofile.

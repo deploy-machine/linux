@@ -1,0 +1,6 @@
+#!/bin/sh
+# OpenBSD 7.9 -- text to speech
+set -eu
+
+# not applicable on OpenBSD: `pied` is a snap and snapd does not exist here.
+echo "tts: not applicable on OpenBSD (pied is snap-only), nothing to do."

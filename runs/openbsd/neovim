@@ -1,0 +1,25 @@
+#!/bin/sh
+# OpenBSD 7.9 -- neovim
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# neovim is packaged; the Linux/FreeBSD source build (cmake, gettext, lua5.1)
+# is not needed. $NVIM_VERSION is therefore ignored on OpenBSD.
+if [ -n "${NVIM_VERSION:-}" ]; then
+    log "NOTE: NVIM_VERSION=$NVIM_VERSION ignored, the packaged neovim is installed."
+fi
+
+# fd is used by the nvim config (telescope/fzf); git and a C compiler (clang in
+# base) are needed by lazy.nvim and nvim-treesitter.
+do_run doas pkg_add -I neovim fd git

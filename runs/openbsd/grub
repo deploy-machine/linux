@@ -1,0 +1,7 @@
+#!/bin/sh
+# OpenBSD 7.9 -- grub theme
+set -eu
+
+# not applicable on OpenBSD: the system boots with the OpenBSD bootloader
+# (biosboot/efiboot), GRUB and /etc/default/grub do not exist.
+echo "grub: not applicable on OpenBSD, nothing to do."

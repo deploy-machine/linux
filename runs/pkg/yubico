@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Install FIDO2 development libraries
 sudo pkg install -y libfido2

@@ -1,0 +1,35 @@
+#!/bin/sh
+# OpenBSD 7.9 -- fun terminal tools
+# Tolerates failure on purpose in the best-effort block below.
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# No PPAs / `pkg update` on OpenBSD; the mirror comes from /etc/installurl.
+# gmake: the somafm-cli Makefile needs GNU make (as on FreeBSD); git for the clone.
+do_run doas pkg_add -I gmake git yt-dlp htop cmatrix lsd neofetch || exit 1
+
+# --- best effort: names unverified for 7.9 ---
+for pkg in glances cbonsai asciiquarium onefetch bashtop; do
+    do_run doas pkg_add -I "$pkg" || log "WARN: $pkg not available"
+done
+
+# Install somafm cli (idempotent clone)
+if [ ! -d "$HOME/somafm" ]; then
+    do_run git clone https://github.com/rockymadden/somafm-cli.git "$HOME/somafm"
+fi
+if [ "$dry_run" = "0" ]; then
+    cd "$HOME/somafm" || exit 1
+fi
+do_run gmake
+do_run doas gmake install

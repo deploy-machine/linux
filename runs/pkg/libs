@@ -1,7 +1,7 @@
 #!/bin/sh
 
 sudo pkg update
-sudo pkg install -y scrot bat zip pulsemixer pulseaudio-utils gcc unzip curl wget git ca_root_nss ripgrep xclip jq tldr shutter py39-pip hs-shellcheck mpv ffmpeg brotli p7zip meson ninja
+sudo pkg install -y bash scrot bat zip pulsemixer pulseaudio-utils gcc unzip curl wget git ca_root_nss ripgrep xclip jq tldr shutter py39-pip hs-shellcheck mpv ffmpeg brotli p7zip meson ninja
 
 mkdir -P $HOME/personal/fzf
 

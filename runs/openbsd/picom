@@ -1,0 +1,23 @@
+#!/bin/sh
+# OpenBSD 7.9 -- compositor
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# The Linux branches build the phyos picom fork from source (meson/ninja).
+# OpenBSD packages upstream picom (which has had animations since v12), so the
+# package is used instead of a source build.
+do_run doas pkg_add -I picom
+
+# NOTE: env/.xprofile starts picom with `--experimental-backends`; that flag was
+# removed upstream in picom v10 and must be dropped on OpenBSD (manual step).

@@ -1,0 +1,19 @@
+#!/bin/sh
+# OpenBSD 7.9 -- vpn
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# WireGuard itself is the wg(4) driver in the base kernel; only the userland
+# tools are a package.
+do_run doas pkg_add -I wireguard-tools

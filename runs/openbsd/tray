@@ -1,0 +1,22 @@
+#!/bin/sh
+# OpenBSD 7.9 -- system tray
+# Tolerates failure on purpose: trayer package name unverified for 7.9.
+set -u
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# --- best effort ---
+do_run doas pkg_add -I trayer || log "WARN: trayer not available"
+
+# not applicable on OpenBSD: nm-tray (there is no NetworkManager; networking is
+# hostname.if(5) / ifconfig(8)).

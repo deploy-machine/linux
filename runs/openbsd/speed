@@ -1,0 +1,7 @@
+#!/bin/sh
+# OpenBSD 7.9 -- boot speed tweaks
+set -eu
+
+# not applicable on OpenBSD: preload, plymouth, GRUB_CMDLINE and
+# NetworkManager-wait-online (systemctl) are all Linux specific.
+echo "speed: not applicable on OpenBSD, nothing to do."
