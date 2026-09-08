@@ -16,10 +16,35 @@ do_run() {
 }
 
 # No PPAs / `pkg update` on OpenBSD; the mirror comes from /etc/installurl.
-# gmake: the somafm-cli Makefile needs GNU make (as on FreeBSD); git for the clone.
-do_run doas pkg_add -I gmake git yt-dlp htop cmatrix lsd neofetch glances asciiquarium || exit 1
+# gmake: the somafm-cli Makefile needs GNU make (as on FreeBSD); git for the clones.
+# rust/cmake/pkgconf: onefetch (cargo). bash/py3-psutil/coreutils/gsed: bashtop.
+do_run doas pkg_add -I gmake git rust cmake pkgconf bash py3-psutil coreutils gsed yt-dlp htop cmatrix lsd neofetch glances asciiquarium || exit 1
 
-# not packaged in 7.9 (checked with pkg_info -Q): cbonsai, onefetch, bashtop.
+# --- best effort: not packaged in 7.9 (checked with pkg_info -Q), built from source ---
+
+# onefetch: rust crate; builds a static libgit2, hence cmake + pkgconf. No JIT,
+# so ~/.cargo/bin is fine under W^X.
+do_run cargo install onefetch || log "WARN: cargo install onefetch failed"
+
+# cbonsai: one C file. Its Makefile uses `install -D` (GNU only) and links
+# -lncursesw/-lpanelw; OpenBSD base has -lcurses/-lpanel, so build and copy by hand.
+if [ ! -d "$HOME/cbonsai" ]; then
+    do_run git clone https://gitlab.com/jallbrit/cbonsai.git "$HOME/cbonsai"
+fi
+if do_run cc -Wall -o "$HOME/cbonsai/cbonsai" "$HOME/cbonsai/cbonsai.c" -lcurses -lpanel; then
+    do_run doas install -m 755 "$HOME/cbonsai/cbonsai" /usr/local/bin/cbonsai
+else
+    log "WARN: cbonsai build failed"
+fi
+
+# bashtop: a bash script that reads /proc on Linux and drives psutil elsewhere.
+# It expects GNU sed/coreutils and is not tested on OpenBSD; the same author's
+# successor btop is the real answer if packaged (check `pkg_info -Q btop`).
+do_run doas pkg_add -I btop || log "WARN: btop not available"
+if [ ! -d "$HOME/bashtop" ]; then
+    do_run git clone https://github.com/aristocratos/bashtop.git "$HOME/bashtop"
+fi
+do_run doas install -m 755 "$HOME/bashtop/bashtop" /usr/local/bin/bashtop || log "WARN: bashtop install failed"
 
 # Install somafm cli (idempotent clone)
 if [ ! -d "$HOME/somafm" ]; then
