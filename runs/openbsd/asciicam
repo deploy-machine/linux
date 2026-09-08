@@ -17,9 +17,9 @@ do_run() {
 }
 
 # OpenBSD packages OpenCV: the from-source build of the other branches is not used.
-# rust provides cargo (rustup has no OpenBSD host support). pkgconf is needed by
-# the opencv crate's build script; ffmpeg/yt-dlp are runtime deps of tplay.
-do_run doas pkg_add -I opencv rust pkgconf cmake ffmpeg yt-dlp || exit 1
+# rust provides cargo (rustup has no OpenBSD host support). The opencv crate's build
+# script needs pkg-config (in base); ffmpeg/yt-dlp are runtime deps of tplay.
+do_run doas pkg_add -I opencv rust cmake ffmpeg yt-dlp || exit 1
 
 # The opencv crate uses bindgen, which needs libclang from the llvm package (not
 # in base). 7.9 ships llvm 19/20/21, so the branch must be spelled out or pkg_add

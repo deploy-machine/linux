@@ -14,9 +14,9 @@ do_run() {
     if [ "$dry_run" = "0" ]; then "$@"; fi
 }
 
-# libfido2 (headers included; there is no separate -dev package on OpenBSD)
+# libfido2 is in base on OpenBSD (used by ssh-sk), headers included: no package.
 # yubikey-manager verified packaged in 7.9
-do_run doas pkg_add -I libfido2 yubikey-manager
+do_run doas pkg_add -I yubikey-manager
 
 # not applicable on OpenBSD: udev rules. There is no udev; FIDO tokens are
 # exposed by the fido(4) driver as /dev/fido/* and access is governed by the

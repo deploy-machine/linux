@@ -20,7 +20,8 @@ do_run() {
 # python3-venv: venv is part of the python%3 package.
 # libtree-sitter-dev -> tree-sitter, tree-sitter-cli is packaged too (no npm -g needed).
 # nvm is replaced by the node package (see below). composer and deno verified packaged in 7.9.
-do_run doas pkg_add -I git curl wget unzip go python%3 py3-pip zsh tmux node tree-sitter tree-sitter-cli fzf composer deno || exit 1
+# tmux is in base on OpenBSD (it originated there), no package.
+do_run doas pkg_add -I git curl wget unzip go python%3 py3-pip zsh node tree-sitter tree-sitter-cli fzf composer deno || exit 1
 
 # --- GitHub CLI --- best effort: `gh` is not a package stem in 7.9. Try the
 # package anyway (name may differ), else build it with go (no JIT, ~/go/bin is fine).

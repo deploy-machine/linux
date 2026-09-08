@@ -17,12 +17,12 @@ do_run() {
 
 # No PPAs / `pkg update` on OpenBSD; the mirror comes from /etc/installurl.
 # gmake: the somafm-cli Makefile needs GNU make (as on FreeBSD); git for the clones.
-# rust/cmake/pkgconf: onefetch (cargo). bash/py3-psutil/coreutils/gsed: bashtop.
-do_run doas pkg_add -I gmake git rust cmake pkgconf bash py3-psutil coreutils gsed yt-dlp htop btop cmatrix lsd neofetch glances asciiquarium || exit 1
+# rust/cmake: onefetch (cargo; pkg-config is in base). bash/py3-psutil/coreutils/gsed: bashtop.
+do_run doas pkg_add -I gmake git rust cmake bash py3-psutil coreutils gsed yt-dlp htop btop cmatrix lsd neofetch glances asciiquarium || exit 1
 
 # --- best effort: not packaged in 7.9 (checked with pkg_info -Q), built from source ---
 
-# onefetch: rust crate; builds a static libgit2, hence cmake + pkgconf. No JIT,
+# onefetch: rust crate; builds a static libgit2, hence cmake. No JIT,
 # so ~/.cargo/bin is fine under W^X.
 do_run cargo install onefetch || log "WARN: cargo install onefetch failed"
 
