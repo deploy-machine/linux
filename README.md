@@ -50,6 +50,13 @@ Reboot the machine afterwards, then at the gdm login screen, change the DE to DW
 
 Afterwards, run the script again (I know... I have to fix this...)
 
+#### OpenBSD
+
+There is no gdm/systemd on OpenBSD: `./run` builds dwm and st against Xenocara,
+writes `~/.xsession` (which runs `start-dwm.sh`) and enables xenodm(1), the login
+screen. Log out and back in after the run and xenodm starts dwm. If you land back
+on the login screen, look at `~/.xsession-errors`.
+
 ## Tested Distributions
 
 The following distro's have been tested:

@@ -1,1 +1,6 @@
 matrix
+# suckless build products (dwm/config.h is tracked on purpose, st/config.h is generated)
+*.o
+dwm/dwm
+st/st
+st/config.h

@@ -11,7 +11,7 @@ dry_run="0"
 pkg_mgr_dir="" # Will hold the package manager specific directory name
 
 # Define a specific order of scripts to run when no pattern is provided
-ordered_scripts="authentication vpn flatpak passwords gtk speed tts libs browser files wallpaper yubico picom tray dev neovim fun font night-light chat notifications asciicam"
+ordered_scripts="authentication vpn flatpak passwords gtk speed tts libs dwm browser files wallpaper yubico picom tray dev neovim fun font night-light chat notifications asciicam"
 
 # Log function
 log() {
@@ -77,10 +77,6 @@ done
 
 log "RUN: dry_run: $dry_run -- grep_pattern: '$grep_pattern'"
 
-# Find executable files in $distro_specific_runs_dir
-# Note: This find is mainly for the 'grep' case.
-# For the ordered list, we construct paths directly.
-executable_scripts_in_distro_dir=$(find "$distro_specific_runs_dir" -mindepth 1 -maxdepth 1 -type f -executable)
 
 # If no grep pattern is passed, use the defined order
 if [ -z "$grep_pattern" ]; then
@@ -101,22 +97,17 @@ if [ -z "$grep_pattern" ]; then
     done
 else
     log "Specific script pattern '$grep_pattern' provided. Searching in '$target_runs_subdir':"
+    # Look the script up directly instead of `find -executable`: that predicate is
+    # a GNU extension and OpenBSD's find(1) rejects it, leaving an empty list.
     found_match=0
-    # Iterate over found executable files and only run the ones that match the grep pattern exactly
-    for s in $executable_scripts_in_distro_dir; do
-        if [ "$(basename "$s")" = "$grep_pattern" ]; then
-            log "Running script: $s"
-            if [ "$dry_run" = "0" ]; then
-                "$s"
-            fi
-            found_match=1
-            break # Found the exact match, no need to check further
-        else
-            # This log can be verbose if many scripts don't match.
-            # log "Pattern \"$grep_pattern\" did not match $(basename "$s")"
-            : # No-op, just to have something in the else
+    s="$distro_specific_runs_dir/$grep_pattern"
+    if [ -f "$s" ] && [ -x "$s" ]; then
+        log "Running script: $s"
+        if [ "$dry_run" = "0" ]; then
+            "$s"
         fi
-    done
+        found_match=1
+    fi
     if [ "$found_match" = "0" ]; then
         log "No script exactly matching '$grep_pattern' found or executable in '$distro_specific_runs_dir'."
     fi
