@@ -27,18 +27,31 @@ do_run mkdir -p "$fonts_dir"
 fonts="BitstreamVeraSansMono CodeNewRoman DroidSansMono FiraCode FiraMono Go-Mono Hack Hermit JetBrainsMono Meslo Noto Overpass ProggyClean RobotoMono SourceCodePro SpaceMono Ubuntu UbuntuMono"
 
 for font in $fonts; do
-    zip_file="${font}.zip"
-    download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v${version}/${zip_file}"
+    zip_file="$fonts_dir/${font}.zip"
+    download_url="https://github.com/ryanoasis/nerd-fonts/releases/download/v${version}/${font}.zip"
 
-    if [ -f "$fonts_dir/$zip_file" ]; then
-        log "Zip file $zip_file already exists, skipping download."
-    else
-        do_run ftp -o "$fonts_dir/$zip_file" "$download_url" || { log "WARN: download failed for $font"; rm -f "$fonts_dir/$zip_file"; continue; }
+    # A zip that fails unzip -t is a truncated or failed download (ftp(1) leaves
+    # partial files behind): throw it away and fetch again instead of skipping it.
+    if [ -f "$zip_file" ] && ! unzip -tqq "$zip_file" >/dev/null 2>&1; then
+        log "$zip_file is not a valid zip, downloading again"
+        do_run rm -f "$zip_file"
     fi
 
-    # -n never overwrites, which keeps re-runs idempotent
-    do_run unzip -n -q "$fonts_dir/$zip_file" -d "$fonts_dir" || log "WARN: unzip failed for $font"
+    if [ -f "$zip_file" ]; then
+        log "$zip_file already downloaded, skipping."
+    else
+        do_run ftp -o "$zip_file" "$download_url" || { log "WARN: download failed for $font"; rm -f "$zip_file"; continue; }
+    fi
+
+    # -n never overwrites, which keeps re-runs idempotent. Errors are shown, not hidden.
+    do_run unzip -n -q "$zip_file" -d "$fonts_dir" || log "WARN: unzip failed for $font ($(unzip -tqq "$zip_file" 2>&1 | head -1))"
 done
+
+# Nothing below helps if not a single font file was extracted.
+if [ "$dry_run" = "0" ] && [ -z "$(find "$fonts_dir" -name '*.ttf' -o -name '*.otf' | head -1)" ]; then
+    echo "ERROR: no .ttf/.otf files in $fonts_dir, every unzip failed (see the WARN lines above)" >&2
+    exit 1
+fi
 
 do_run mkfontscale "$fonts_dir"
 do_run mkfontdir "$fonts_dir"
