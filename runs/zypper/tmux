@@ -31,6 +31,13 @@ if [ ! -f "$conf_dir/tmux.conf" ]; then
     do_run cp "$DEV_ENV_HOME/env/.config/tmux/tmux.conf" "$conf_dir/tmux.conf"
 fi
 
+# Older copies of the config dir carried empty plugins/tmux and plugins/tpm
+# stubs, which made TPM believe the plugins were installed. Remove empty ones.
+for stub in "$conf_dir"/plugins/*; do
+    [ -d "$stub" ] && rmdir "$stub" 2>/dev/null && log "removed empty stub $stub"
+done
+rmdir "$conf_dir/plugins" 2>/dev/null || true
+
 tpm="$HOME/.tmux/plugins/tpm"
 if [ -d "$tpm/.git" ]; then
     do_run git -C "$tpm" pull -q --ff-only || log "WARN: could not update tpm"
@@ -41,4 +48,5 @@ fi
 # Installs (or updates) every `set -g @plugin` from tmux.conf; works outside tmux.
 do_run "$tpm/bin/install_plugins" || { echo "ERROR: plugin install failed, try prefix + I inside tmux" >&2; exit 1; }
 
+log "Installed under $HOME/.tmux/plugins:"; ls "$HOME/.tmux/plugins"
 log "tmux plugins installed. Reload with: tmux source ~/.config/tmux/tmux.conf (or restart tmux)."
