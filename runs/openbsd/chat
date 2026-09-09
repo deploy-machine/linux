@@ -25,3 +25,7 @@ if [ "$dry_run" = "0" ]; then
 else
     log "+ curl -s https://raw.githubusercontent.com/kha7iq/pingme/master/install.sh | doas sh"
 fi
+
+# not applicable on OpenBSD: the Tuta desktop client is an Electron build for
+# Linux/macOS/Windows only and is not packaged. Use https://app.tuta.com.
+log "tuta: no OpenBSD desktop client, use https://app.tuta.com in the browser."

@@ -48,6 +48,13 @@ log "Installing Oh My Zsh plugins..."
 # The plugins line is already configured in env/.zshrc, which ./dev copies to
 # $HOME; the Linux `sed -i` step is therefore not needed (and BSD sed -i differs).
 
+# --- Claude Code CLI --- best effort. The npm package is JavaScript and runs on
+# the node package; OpenBSD is not a supported platform (the native installer
+# only ships Linux/macOS binaries). It bundles ripgrep binaries per platform,
+# none for OpenBSD, so env/.zshrc sets USE_BUILTIN_RIPGREP=0 to use the rg
+# package from runs/openbsd/libs. The desktop app has no OpenBSD (or Linux) build.
+do_run doas npm install -g @anthropic-ai/claude-code || log "WARN: npm install @anthropic-ai/claude-code failed"
+
 # --- GitHub CLI --- best effort: `gh` is not a package stem in 7.9. Try the
 # package anyway (name may differ), else build it with go (no JIT, ~/go/bin is fine).
 do_run doas pkg_add -I gh || do_run go install github.com/cli/cli/v2/cmd/gh@latest || log "WARN: gh install failed"
