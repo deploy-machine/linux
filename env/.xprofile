@@ -1,4 +1,10 @@
 DISTRO_WALLPAPER="od_arch.png"
+# The BSDs have no /etc/os-release for the wallpaper step, and that step edits
+# this file inside the checkout, which a git pull can revert. Decide at runtime.
+case "$(uname -s)" in
+OpenBSD) DISTRO_WALLPAPER="od_openbsd.png" ;;
+FreeBSD) DISTRO_WALLPAPER="od_freebsd.png" ;;
+esac
 ~/xprofile1
 xrdb merge ~/.Xresources
 xset r rate 200 50 &
