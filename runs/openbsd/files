@@ -15,7 +15,9 @@ do_run() {
     if [ "$dry_run" = "0" ]; then "$@"; fi
 }
 
-do_run doas pkg_add -I pcmanfm || exit 1
+# pcmanfm (GTK2) was removed from the ports tree; thunar is the GTK3 file manager
+# still packaged (pcmanfm-qt exists too but drags in Qt/LXQt).
+do_run doas pkg_add -I thunar || exit 1
 
 # --- best effort: the abraunegg onedrive client (D language) may not be packaged ---
 if do_run doas pkg_add -I onedrive; then
