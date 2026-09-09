@@ -29,3 +29,5 @@ fi
 # not applicable on OpenBSD: the Tuta desktop client is an Electron build for
 # Linux/macOS/Windows only and is not packaged. Use https://app.tuta.com.
 log "tuta: no OpenBSD desktop client, use https://app.tuta.com in the browser."
+# not applicable on OpenBSD: Discord is Electron, Linux/macOS/Windows only, no package.
+log "discord: no OpenBSD client, use https://discord.com/app in chromium or firefox."

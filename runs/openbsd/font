@@ -25,10 +25,24 @@ if [ "$dry_run" = "0" ] && ! command -v unzip >/dev/null 2>&1; then
     exit 1
 fi
 
-version='2.1.0'
+# v3 is required: LazyVim (and most Nerd Font consumers since 2023) use the v3
+# Material Design codepoints, which 2.x fonts do not have. Family names are the
+# same in both ("Hack Nerd Font Mono"), only the file names changed.
+version='3.5.1'
 fonts_dir="$HOME/.local/share/fonts"
+marker="$fonts_dir/.nerd-fonts-version"
 
 do_run mkdir -p "$fonts_dir"
+
+# A different release means the cached zips and the extracted files are stale.
+# Both generations installed side by side let fontconfig pick either one.
+if [ -f "$marker" ] && [ "$(cat "$marker")" != "$version" ] || { [ ! -f "$marker" ] && ls "$fonts_dir"/*.zip >/dev/null 2>&1; }; then
+    log "Nerd Fonts release changed to $version, removing the old zips and font files"
+    do_run rm -f "$fonts_dir"/*.zip
+    if [ "$dry_run" = "0" ]; then
+        find "$fonts_dir" -maxdepth 1 -type f \( -name '*Nerd Font*' -o -name '*NerdFont*' \) -delete
+    fi
+fi
 
 fonts="BitstreamVeraSansMono CodeNewRoman DroidSansMono FiraCode FiraMono Go-Mono Hack Hermit JetBrainsMono Meslo Noto Overpass ProggyClean RobotoMono SourceCodePro SpaceMono Ubuntu UbuntuMono"
 
@@ -58,6 +72,8 @@ if [ "$dry_run" = "0" ] && [ -z "$(find "$fonts_dir" -name '*.ttf' -o -name '*.o
     echo "ERROR: no .ttf/.otf files in $fonts_dir, every unzip failed (see the WARN lines above)" >&2
     exit 1
 fi
+
+if [ "$dry_run" = "0" ]; then echo "$version" > "$marker"; fi
 
 do_run mkfontscale "$fonts_dir"
 do_run mkfontdir "$fonts_dir"
