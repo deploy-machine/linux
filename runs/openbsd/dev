@@ -70,8 +70,17 @@ do_run doas pkg_add -I php%8.4 ruby%3.3 jdk%21 || exit 1
 # --- best effort ---
 # unixODBC is not packaged in 7.9; iodbc is the ODBC manager OpenBSD ships.
 do_run doas pkg_add -I iodbc || log "WARN: iodbc not available"
-# iredis: pip only. Fails under PEP 668 if py3-pip is marked externally managed.
-do_run pip3 install --user iredis || log "WARN: iredis (pip) failed"
+# iredis: pip only. OpenBSD marks the system python as externally managed
+# (PEP 668), so `pip3 install --user` is refused; a venv under ~/.local/share
+# with a symlink into ~/.local/bin sidesteps that without touching the system.
+iredis_venv="$HOME/.local/share/iredis-venv"
+[ -x "$iredis_venv/bin/pip" ] || do_run python3 -m venv "$iredis_venv"
+if do_run "$iredis_venv/bin/pip" install -q --upgrade iredis; then
+    do_run mkdir -p "$HOME/.local/bin"
+    do_run ln -sf "$iredis_venv/bin/iredis" "$HOME/.local/bin/iredis"
+else
+    log "WARN: iredis (pip, in a venv) failed"
+fi
 
 # --- Node ---
 # nvm is not used: it needs bash and installs a JITting node under $HOME, which
@@ -82,10 +91,12 @@ do_run pip3 install --user iredis || log "WARN: iredis (pip) failed"
 # not applicable on OpenBSD: there is no Docker (and podman is not an
 # equivalent). Use vmm(4)/vmd(8) from base to run Linux guests instead.
 
-# --- Deno / taskbook ---
+# --- taskbook (and a note on Deno) ---
 # Deno JITs (V8), so it must come from a package in /usr/local (W^X), never
 # from the deno.land install script into ~/.deno (the deno package is installed above).
-do_run deno install -g npm:taskbook || log "WARN: deno install taskbook failed"
+# taskbook is plain JavaScript on npm; installing it through npm (node package,
+# global installs go to /usr/local) is simpler than deno's npm shim.
+do_run doas npm install -g taskbook || log "WARN: npm install taskbook failed"
 
 # --- usql (universal sql cli) --- best effort, `-tags all` needs many cgo drivers
 # GOBIN: ~/go/bin is not on the PATH, ~/.local/bin is
