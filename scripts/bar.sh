@@ -5,6 +5,13 @@
 
 interval=0
 
+# Only one instance may write the root window name. A bar.sh from a previous
+# login survives logout (xenodm does not kill stray processes) and reattaches
+# to the next X server, so both loops then overwrite each other every second.
+for pid in $(pgrep -f 'scripts/bar.sh'); do
+  [ "$pid" != "$$" ] && kill "$pid" 2>/dev/null
+done
+
 # load colors
 . ~/.config/scripts/bar_themes/radium
 
