@@ -23,6 +23,13 @@ do_run() {
 # tmux is in base on OpenBSD (it originated there), no package.
 do_run doas pkg_add -I git curl wget unzip go python%3 py3-pip zsh node tree-sitter tree-sitter-cli fzf composer deno || exit 1
 
+# The oh-my-zsh installer below runs with CHSH=no, and xenodm/st use the login
+# shell from passwd(5), so switch it here. The zsh package registers itself in
+# /etc/shells, which chsh(1) requires for non-root users.
+if [ "$(getent passwd "$(id -un)" | cut -d: -f7)" != "/usr/local/bin/zsh" ]; then
+    do_run chsh -s /usr/local/bin/zsh || log "WARN: chsh failed, run: chsh -s /usr/local/bin/zsh"
+fi
+
 # --- GitHub CLI --- best effort: `gh` is not a package stem in 7.9. Try the
 # package anyway (name may differ), else build it with go (no JIT, ~/go/bin is fine).
 do_run doas pkg_add -I gh || do_run go install github.com/cli/cli/v2/cmd/gh@latest || log "WARN: gh install failed"

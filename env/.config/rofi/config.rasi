@@ -1,2 +1,3 @@
 
-@theme "/usr/share/rofi/themes/gruvbox-dark-hard.rasi"
+/* by name: rofi looks in /usr/share/rofi/themes (Linux) and /usr/local/share/rofi/themes (OpenBSD) */
+@theme "gruvbox-dark-hard"
