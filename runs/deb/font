@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version='2.1.0'
+version='3.5.1' # v3: Material Design icons moved, needed by scripts/bar.sh and LazyVim
 fonts_dir="$HOME/.local/share/fonts"
 
 if [ ! -d "$fonts_dir" ]; then

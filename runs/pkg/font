@@ -4,7 +4,7 @@
 sudo pkg install -y wget unzip fontconfig mkfontscale git
 
 # --- Font Installation Logic (from user) ---
-version='2.1.0' # Consider using a newer version like 3.1.1 or 3.2.1 if available and desired
+version='3.5.1' # v3: Material Design icons moved, needed by scripts/bar.sh and LazyVim
 fonts_dir="$HOME/.local/share/fonts"
 
 if [ ! -d "$fonts_dir" ]; then

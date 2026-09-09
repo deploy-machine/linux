@@ -2,6 +2,7 @@
 
 # ^c$var^ = fg color
 # ^b$var^ = bg color
+# Icons are Nerd Fonts 3 codepoints (the Material Design ones moved in v3).
 
 interval=0
 
@@ -25,7 +26,7 @@ cpu() {
     cpu_val=$(grep -o "^[^ ]*" /proc/loadavg)
   fi
 
-  printf "^c$blue^  $cpu_val"
+  printf "^c$blue^ 󰍛 $cpu_val"
 }
 
 pkg_updates() {
@@ -83,7 +84,7 @@ wlan() {
   fi
 	case "$state" in
 	up) printf "^c$pink^  ^d^%s" " ^c$pink^Connected" ;;
-	down) printf "^c$pink^  ^d^%s" " ^c$pink^Disconnected" ;;
+	down) printf "^c$pink^ 󰀂 ^d^%s" " ^c$pink^Disconnected" ;;
 	esac
 }
 
