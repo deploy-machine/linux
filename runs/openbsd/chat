@@ -15,15 +15,16 @@ do_run() {
     if [ "$dry_run" = "0" ]; then "$@"; fi
 }
 
-# Install chat clients (curl is needed for the pingme installer)
-do_run doas pkg_add -I irssi curl || exit 1
+# Install chat clients
+do_run doas pkg_add -I irssi || exit 1
 
-# --- best effort: PingMe is not packaged; its installer downloads a Go binary
-# and may not ship an OpenBSD build ---
-if [ "$dry_run" = "0" ]; then
-    curl -s https://raw.githubusercontent.com/kha7iq/pingme/master/install.sh | doas sh || log "WARN: pingme installer failed (no OpenBSD build?)"
+# --- PingMe --- not packaged, and its install.sh only fetches prebuilt Linux/macOS
+# binaries. It is a Go program, so build it with the go package (runs/openbsd/dev).
+# GOBIN puts it in ~/.local/bin, which is on the PATH (~/go/bin is not).
+if command -v go >/dev/null 2>&1; then
+    do_run env GOBIN="$HOME/.local/bin" go install github.com/kha7iq/pingme@latest || log "WARN: go install pingme failed"
 else
-    log "+ curl -s https://raw.githubusercontent.com/kha7iq/pingme/master/install.sh | doas sh"
+    log "WARN: go not found (run ./run dev first), pingme not installed"
 fi
 
 # not applicable on OpenBSD: the Tuta desktop client is an Electron build for

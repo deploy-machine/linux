@@ -88,7 +88,8 @@ do_run pip3 install --user iredis || log "WARN: iredis (pip) failed"
 do_run deno install -g npm:taskbook || log "WARN: deno install taskbook failed"
 
 # --- usql (universal sql cli) --- best effort, `-tags all` needs many cgo drivers
-do_run go install github.com/xo/usql@latest || log "WARN: go install usql failed"
+# GOBIN: ~/go/bin is not on the PATH, ~/.local/bin is
+do_run env GOBIN="$HOME/.local/bin" go install github.com/xo/usql@latest || log "WARN: go install usql failed"
 
 # --- FZF ---
 # The fzf package is used instead of the git clone + ./install (which also
