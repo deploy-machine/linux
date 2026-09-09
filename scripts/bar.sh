@@ -18,7 +18,7 @@ cpu() {
     cpu_val=$(grep -o "^[^ ]*" /proc/loadavg)
   fi
 
-  printf "^c$blue^  $cpu_val"
+  printf "^c$blue^  $cpu_val"
 }
 
 pkg_updates() {
@@ -28,9 +28,9 @@ pkg_updates() {
   # OpenBSD: pkg_add -un and syspatch -c both need root, so there is no check here.
 
   if [ -z "$updates" ]; then
-    printf "  ^c$green^    Fully Updated"
+    printf "  ^c$green^    Fully Updated"
   else
-    printf "  ^c$green^    $updates"" updates"
+    printf "  ^c$green^    $updates"" updates"
   fi
 }
 
@@ -40,21 +40,23 @@ battery() {
   else
     get_capacity="$(cat /sys/class/power_supply/BAT1/capacity 2>/dev/null)"
   fi
-  printf "^c$red^   $get_capacity"
+  printf "^c$red^   $get_capacity"
 }
 
 brightness() {
-  printf "^c$red^   "
+  printf "^c$red^   "
   if [ "$os" = OpenBSD ]; then
     # xbacklight is in Xenocara base (RandR backlight property)
-    printf "^c$red^%.0f\n" "$(xbacklight -get 2>/dev/null || echo 0)"
+    printf "^c$red^%.0f
+" "$(xbacklight -get 2>/dev/null || echo 0)"
   else
-    printf "^c$red^%.0f\n" $(cat /sys/class/backlight/*/brightness)
+    printf "^c$red^%.0f
+" $(cat /sys/class/backlight/*/brightness)
   fi
 }
 
 mem() {
-  printf "^c$yellow^  "
+  printf "^c$yellow^  "
   if [ "$os" = OpenBSD ]; then
     # vmstat's avm column (active virtual memory), already human-sized
     printf "^c$yellow^ $(vmstat | awk 'NR==3 { print $3 }')"
@@ -71,13 +73,13 @@ wlan() {
     state="$(cat /sys/class/net/wl*/operstate 2>/dev/null)"
   fi
 	case "$state" in
-	up) printf "^c$pink^  ^d^%s" " ^c$pink^Connected" ;;
-	down) printf "^c$pink^  ^d^%s" " ^c$pink^Disconnected" ;;
+	up) printf "^c$pink^  ^d^%s" " ^c$pink^Connected" ;;
+	down) printf "^c$pink^  ^d^%s" " ^c$pink^Disconnected" ;;
 	esac
 }
 
 clock() {
-	printf "^c$red^  "
+	printf "^c$red^  "
 	printf "^c$red^ $(date '+%H:%M')  "
 }
 
