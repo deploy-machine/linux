@@ -22,7 +22,7 @@ do_run() {
 # bash is needed by scripts/fetch and scripts/cht.sh (they are bash scripts);
 # it installs to /usr/local/bin/bash, never /bin/bash.
 # rust: for the cargo fallback below.
-do_run doas pkg_add -I bash rust scrot bat zip unzip curl wget git ripgrep xclip jq shellcheck mpv ffmpeg brotli p7zip meson ninja py3-pip || exit 1
+do_run doas pkg_add -I bash rust scrot bat zip unzip-- curl wget git ripgrep xclip jq shellcheck mpv ffmpeg brotli p7zip meson ninja py3-pip || exit 1
 
 # not applicable on OpenBSD: pulseaudio-utils / pulsemixer. Audio is sndio(7) in
 # base and every app here talks to it directly; volume is `sndioctl output.level=+0.1`.

@@ -21,7 +21,7 @@ do_run() {
 # libtree-sitter-dev -> tree-sitter, tree-sitter-cli is packaged too (no npm -g needed).
 # nvm is replaced by the node package (see below). composer and deno verified packaged in 7.9.
 # tmux is in base on OpenBSD (it originated there), no package.
-do_run doas pkg_add -I git curl wget unzip go python%3 py3-pip zsh node tree-sitter tree-sitter-cli fzf composer deno || exit 1
+do_run doas pkg_add -I git curl wget unzip-- go python%3 py3-pip zsh node tree-sitter tree-sitter-cli fzf composer deno || exit 1
 
 # The oh-my-zsh installer below runs with CHSH=no, and xenodm/st use the login
 # shell from passwd(5), so switch it here. The zsh package registers itself in

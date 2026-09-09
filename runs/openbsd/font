@@ -17,7 +17,13 @@ do_run() {
 
 # fontconfig (fc-cache) and mkfontscale are part of base Xenocara; only unzip
 # is a package. Downloads use ftp(1) from base instead of wget.
-do_run doas pkg_add -I unzip || exit 1
+# unzip has two flavours (plain and iconv): a bare `unzip` is ambiguous, and with
+# -I pkg_add then installs nothing yet exits 0. `unzip--` selects the plain flavour.
+do_run doas pkg_add -I unzip-- || exit 1
+if [ "$dry_run" = "0" ] && ! command -v unzip >/dev/null 2>&1; then
+    echo "ERROR: unzip is still not installed, nothing can be extracted" >&2
+    exit 1
+fi
 
 version='2.1.0'
 fonts_dir="$HOME/.local/share/fonts"
