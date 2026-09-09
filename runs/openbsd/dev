@@ -55,13 +55,13 @@ log "Installing Oh My Zsh plugins..."
 # package from runs/openbsd/libs. The desktop app has no OpenBSD (or Linux) build.
 do_run doas npm install -g @anthropic-ai/claude-code || log "WARN: npm install @anthropic-ai/claude-code failed"
 
-# --- GitHub CLI --- best effort: `gh` is not a package stem in 7.9. Try the
-# package anyway (name may differ), else build it with go (no JIT, ~/go/bin is fine).
-do_run doas pkg_add -I gh || do_run go install github.com/cli/cli/v2/cmd/gh@latest || log "WARN: gh install failed"
+# --- GitHub CLI --- packaged as github-cli (devel/github-cli), installs `gh`
+do_run doas pkg_add -I github-cli || log "WARN: github-cli not available"
 
-# --- luarocks --- best effort: not found as `luarocks` in 7.9; OpenBSD flavours
-# it per lua version, so try the lua54 flavour spelling before giving up.
-do_run doas pkg_add -I luarocks--lua54 || do_run doas pkg_add -I luarocks || log "WARN: luarocks not available"
+# --- luarocks --- the Lua flavour is part of the package stem (luarocks-lua51,
+# luarocks-lua52, ...), there is no bare `luarocks`. Lua 5.1 is what neovim's
+# lazy.nvim expects for luarocks support, so that flavour is used.
+do_run doas pkg_add -I luarocks-lua51 || log "WARN: luarocks-lua51 not available"
 
 # Versioned packages: pkg_add reports "Ambiguous" without the branch suffix.
 # php%8.4, ruby%3.3 and jdk%21 verified in 7.9 (ruby 3.3/3.4/4.0, jdk 11/17/21/25 available).
