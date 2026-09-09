@@ -62,11 +62,13 @@ do_run make -j"$num_cores" CPPFLAGS=-D_BSD_SOURCE LIBS="$st_libs" MANPREFIX=/usr
 do_run doas make install CPPFLAGS=-D_BSD_SOURCE LIBS="$st_libs" MANPREFIX=/usr/local/man
 
 # --- Sanity check: the installed binaries must be native OpenBSD executables ---
-# `-v` prints the version and exits without needing a display. A leftover Linux
-# ELF (or a failed build) fails here instead of at the xenodm login screen.
+# `-v` prints the version (to stderr) without needing a display, but both exit 1
+# by design, so the output is checked rather than the exit status. A leftover
+# Linux ELF ("Exec format error") or a failed build fails here instead of at the
+# xenodm login screen.
 if [ "$dry_run" = "0" ]; then
-    /usr/local/bin/dwm -v || { echo "ERROR: /usr/local/bin/dwm does not run" >&2; exit 1; }
-    /usr/local/bin/st -v  || { echo "ERROR: /usr/local/bin/st does not run" >&2; exit 1; }
+    /usr/local/bin/dwm -v 2>&1 | grep -q '^dwm-' || { echo "ERROR: /usr/local/bin/dwm does not run" >&2; exit 1; }
+    /usr/local/bin/st -v 2>&1 | grep -q 'st [0-9]' || { echo "ERROR: /usr/local/bin/st does not run" >&2; exit 1; }
 fi
 
 # --- Rofi theme and dwm scripts (user-owned copies, no doas) ---
