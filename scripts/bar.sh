@@ -33,8 +33,10 @@ pkg_updates() {
   updates=$({ timeout 20 checkupdates 2>/dev/null || true; } | wc -l) # arch
   # updates=$({ timeout 20 aptitude search '~U' 2>/dev/null || true; } | wc -l)  # apt (ubuntu, debian etc)
   # OpenBSD: pkg_add -un and syspatch -c both need root, so there is no check here.
+  # BSD wc pads the count with spaces, which showed up as a gap after the icon.
+  updates=$(echo "$updates" | tr -d ' ')
 
-  if [ -z "$updates" ]; then
+  if [ -z "$updates" ] || [ "$updates" -eq 0 ]; then
     printf "  ^c$green^    Fully Updated"
   else
     printf "  ^c$green^    $updates"" updates"

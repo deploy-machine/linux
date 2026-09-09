@@ -104,11 +104,13 @@ fi
 # xenodm's Xsetup_0 starts a root-owned xconsole for the login screen, and it
 # survives into the session as a "console log" window the user cannot kill.
 # Messages still go to /var/log/messages.
-# Any non-comment "xconsole ..." or "exec xconsole ..." line, indented or not, is
-# turned into ": # xconsole ..." (a no-op keeps an if/then body valid).
+# Any non-comment line running xconsole is turned into ": # xconsole ..." (a no-op
+# keeps an if/then body valid).
 xsetup=/etc/X11/xenodm/Xsetup_0
-if grep -Eq '^[[:space:]]*(exec[[:space:]]+)?xconsole' "$xsetup" 2>/dev/null; then
-    do_run doas sed -i -E 's/^([[:space:]]*)(exec[[:space:]]+)?xconsole/: # xconsole/' "$xsetup"
+# xenodm invokes it by full path (/usr/X11R6/bin/xconsole), so allow a directory prefix.
+xconsole_re='^[[:space:]]*(exec[[:space:]]+)?([^#[:space:]]*/)?xconsole'
+if grep -Eq "$xconsole_re" "$xsetup" 2>/dev/null; then
+    do_run doas sed -i -E "s|$xconsole_re|: # xconsole|" "$xsetup"
 fi
 log "xconsole lines in $xsetup now:"; grep -n xconsole "$xsetup" 2>/dev/null || log "(none)"
 
