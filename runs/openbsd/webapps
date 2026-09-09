@@ -1,6 +1,6 @@
 #!/bin/sh
 # OpenBSD 7.9 -- web apps as drun entries
-# Discord, Tuta, Bitwarden and Claude have no OpenBSD client (all Electron or
+# Discord, Tuta, Bitwarden, Claude and Zoom have no OpenBSD client (all Electron or
 # macOS/Windows only). Each gets a .desktop entry that opens the web app in a
 # chromium app window, so rofi -show drun lists and launches them like programs.
 set -eu
@@ -57,5 +57,6 @@ write_entry "Discord"   "https://discord.com/app"        "Discord web app (no Op
 write_entry "Tuta"      "https://app.tuta.com"           "Tuta Mail web app (no OpenBSD client)" "Network;Email;"
 write_entry "Bitwarden" "https://vault.bitwarden.com"    "Bitwarden web vault (no OpenBSD client)" "Utility;Security;"
 write_entry "Claude"    "https://claude.ai"              "Claude web app (no OpenBSD client)"    "Network;Office;"
+write_entry "Zoom"      "https://app.zoom.us/wc/home"    "Zoom web client (no OpenBSD client)"   "Network;VideoConference;"
 
 log "web app entries written to $apps_dir; rofi -show drun picks them up immediately."
