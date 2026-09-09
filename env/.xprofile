@@ -6,5 +6,5 @@ picom -b --experimental-backends &
 nm-applet &
 redshift &
 feh --bg-fill ~/dev/wallpapers/$DISTRO_WALLPAPER &
-dash ~/.config/scripts/bar.sh &
+sh ~/.config/scripts/bar.sh &
 /usr/libexec/polkit-mate-authentication-agent-1 &
