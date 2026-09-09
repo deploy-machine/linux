@@ -1,0 +1,61 @@
+#!/bin/sh
+# OpenBSD 7.9 -- web apps as drun entries
+# Discord, Tuta, Bitwarden and Claude have no OpenBSD client (all Electron or
+# macOS/Windows only). Each gets a .desktop entry that opens the web app in a
+# chromium app window, so rofi -show drun lists and launches them like programs.
+set -eu
+
+dry_run="0"
+if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
+
+log() {
+    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
+}
+
+do_run() {
+    log "+ $*"
+    if [ "$dry_run" = "0" ]; then "$@"; fi
+}
+
+# The OpenBSD chromium package installs the binary as chrome (chromium on some
+# releases); firefox is the fallback, as a normal window (it has no app mode).
+if command -v chromium >/dev/null 2>&1; then
+    browser="$(command -v chromium)"; open_app="$browser --app="
+elif command -v chrome >/dev/null 2>&1; then
+    browser="$(command -v chrome)"; open_app="$browser --app="
+elif command -v firefox >/dev/null 2>&1; then
+    browser="$(command -v firefox)"; open_app="$browser --new-window "
+    log "NOTE: chromium not found (run ./run browser), using firefox windows instead of app mode"
+else
+    echo "ERROR: no browser found, run ./run browser first" >&2
+    exit 1
+fi
+
+apps_dir="$HOME/.local/share/applications"
+do_run mkdir -p "$apps_dir"
+
+# name | url | comment | categories
+write_entry() {
+    name="$1"; url="$2"; comment="$3"; categories="$4"
+    file="$apps_dir/$(echo "$name" | tr 'A-Z ' 'a-z-')-web.desktop"
+    log "Writing $file ($open_app$url)"
+    if [ "$dry_run" = "0" ]; then
+        printf '%s\n' \
+            '[Desktop Entry]' \
+            'Type=Application' \
+            "Name=$name" \
+            "Comment=$comment" \
+            "Exec=$open_app$url" \
+            "Icon=$(basename "$browser")" \
+            'Terminal=false' \
+            "Categories=$categories" > "$file"
+        chmod 644 "$file"
+    fi
+}
+
+write_entry "Discord"   "https://discord.com/app"        "Discord web app (no OpenBSD client)"   "Network;InstantMessaging;"
+write_entry "Tuta"      "https://app.tuta.com"           "Tuta Mail web app (no OpenBSD client)" "Network;Email;"
+write_entry "Bitwarden" "https://vault.bitwarden.com"    "Bitwarden web vault (no OpenBSD client)" "Utility;Security;"
+write_entry "Claude"    "https://claude.ai"              "Claude web app (no OpenBSD client)"    "Network;Office;"
+
+log "web app entries written to $apps_dir; rofi -show drun picks them up immediately."

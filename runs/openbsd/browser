@@ -17,4 +17,5 @@ do_run() {
 # not applicable on OpenBSD: Microsoft Edge (.deb only).
 
 # Firefox installs natively, not as a flatpak
-do_run doas pkg_add -I firefox
+# chromium: also provides the --app=URL window mode used by runs/openbsd/webapps
+do_run doas pkg_add -I firefox chromium
