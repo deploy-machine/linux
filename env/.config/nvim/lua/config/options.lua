@@ -7,3 +7,18 @@ vim.opt.updatetime = 250
 
 -- Enable persistent undo history
 vim.opt.undofile = true
+
+-- Neovim 0.11 made %l in 'statuscolumn' follow 'number'/'relativenumber' and
+-- stopped treating %r as the relative number (it is the readonly flag again).
+-- The pinned LazyVim (10.x) still emits %r for every line but the cursor line,
+-- so those render blank on 0.11+. Rewrite its output until LazyVim is updated.
+if vim.fn.has("nvim-0.11") == 1 then
+  _G.dev_statuscolumn = function()
+    local ok, ui = pcall(require, "lazyvim.util.ui")
+    if not ok then
+      return "%s%=%l "
+    end
+    return (ui.statuscolumn():gsub("%%r", "%%l"))
+  end
+  vim.opt.statuscolumn = "%!v:lua.dev_statuscolumn()"
+end
