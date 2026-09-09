@@ -48,13 +48,6 @@ log "Installing Oh My Zsh plugins..."
 # The plugins line is already configured in env/.zshrc, which ./dev copies to
 # $HOME; the Linux `sed -i` step is therefore not needed (and BSD sed -i differs).
 
-# --- tmux plugin manager ---
-# env/.config/tmux/tmux.conf runs ~/.tmux/plugins/tpm/tpm and expects dracula/tmux
-# from it, but nothing installs TPM (the plugins dirs in env/ are empty stubs).
-# TPM is bash, which runs/openbsd/libs installs.
-[ -d "$HOME/.tmux/plugins/tpm" ] || do_run git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
-do_run "$HOME/.tmux/plugins/tpm/bin/install_plugins" || log "WARN: tmux plugin install failed, press prefix + I inside tmux"
-
 # --- GitHub CLI --- best effort: `gh` is not a package stem in 7.9. Try the
 # package anyway (name may differ), else build it with go (no JIT, ~/go/bin is fine).
 do_run doas pkg_add -I gh || do_run go install github.com/cli/cli/v2/cmd/gh@latest || log "WARN: gh install failed"

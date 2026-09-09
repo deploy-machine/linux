@@ -11,7 +11,7 @@ dry_run="0"
 pkg_mgr_dir="" # Will hold the package manager specific directory name
 
 # Define a specific order of scripts to run when no pattern is provided
-ordered_scripts="authentication vpn flatpak passwords gtk speed tts libs dwm browser files wallpaper yubico picom tray dev neovim fun font night-light chat notifications asciicam"
+ordered_scripts="authentication vpn flatpak passwords gtk speed tts libs dwm browser files wallpaper yubico picom tray dev tmux neovim fun font night-light chat notifications asciicam"
 
 # Log function
 log() {
