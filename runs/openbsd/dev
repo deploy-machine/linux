@@ -108,6 +108,55 @@ do_run cargo install create-tauri-app --locked || log "WARN: cargo install creat
 do_run cargo install tauri-cli --version '^2.0.0' --locked || log "WARN: cargo install tauri-cli failed"
 do_run cargo install trunk --locked || log "WARN: cargo install trunk failed"
 
-# not applicable on OpenBSD: `rustup target add wasm32-unknown-unknown`.
-# Without rustup the wasm32 target is unavailable, so trunk cannot build for wasm.
-log "NOTE: wasm32-unknown-unknown target is not installable without rustup on OpenBSD."
+# --- wasm32-unknown-unknown target (tauri/trunk frontends written in Rust) ---
+# rustup has no OpenBSD host, but the target's std is pure WebAssembly and the
+# same on every host: Rust's own rust-std tarball for the exact rustc version the
+# rust package ships is dropped into the sysroot. The package is built with
+# lld = false (no rust-lld), so the target links with wasm-ld from the llvm
+# package instead (~/.cargo/config.toml). A rust package upgrade changes the
+# version, which the marker file detects, and the rlibs are fetched again.
+do_run doas pkg_add -I llvm%21 || log "WARN: llvm%21 not installed, wasm linking will fail"
+if command -v rustc >/dev/null 2>&1; then
+    rust_v=$(rustc --version | awk '{print $2}')
+    wasm_dir="$(rustc --print sysroot)/lib/rustlib/wasm32-unknown-unknown"
+    if [ ! -d "$wasm_dir/lib" ] || [ "$(cat "$wasm_dir/.dev-rust-version" 2>/dev/null)" != "$rust_v" ]; then
+        tarball="rust-std-$rust_v-wasm32-unknown-unknown.tar.xz"
+        tmp=$(mktemp -d)
+        log "Installing the wasm32-unknown-unknown std for rustc $rust_v"
+        if do_run ftp -o "$tmp/$tarball" "https://static.rust-lang.org/dist/$tarball"             && do_run sh -c "xz -dc '$tmp/$tarball' | tar -xf - -C '$tmp'"; then
+            src="$tmp/rust-std-$rust_v-wasm32-unknown-unknown/rust-std-wasm32-unknown-unknown/lib/rustlib/wasm32-unknown-unknown"
+            do_run doas rm -rf "$wasm_dir"
+            do_run doas cp -R "$src" "$wasm_dir"
+            if [ "$dry_run" = "0" ]; then echo "$rust_v" | doas tee "$wasm_dir/.dev-rust-version" >/dev/null; fi
+        else
+            log "WARN: could not fetch or unpack $tarball"
+        fi
+        rm -rf "$tmp"
+    fi
+
+    cargo_cfg="$HOME/.cargo/config.toml"
+    if ! grep -q 'wasm32-unknown-unknown' "$cargo_cfg" 2>/dev/null; then
+        log "Adding the wasm32 linker (wasm-ld from llvm%21) to $cargo_cfg"
+        if [ "$dry_run" = "0" ]; then
+            mkdir -p "$HOME/.cargo"
+            printf '%s
+' '' '[target.wasm32-unknown-unknown]'                 '# OpenBSD: the rust package has no rust-lld; wasm-ld comes from the llvm package'                 'linker = "/usr/local/llvm21/bin/wasm-ld"' >> "$cargo_cfg"
+        fi
+    fi
+
+    # trunk looks for wasm-bindgen and wasm-opt in PATH before downloading Linux
+    # binaries (which do not exist for OpenBSD): build the first, package the second.
+    do_run cargo install wasm-bindgen-cli --locked || log "WARN: cargo install wasm-bindgen-cli failed"
+    do_run doas pkg_add -I binaryen || log "WARN: binaryen (wasm-opt) not available"
+
+    # smoke test: an empty lib crate must build for the target
+    if [ "$dry_run" = "0" ]; then
+        tmp=$(mktemp -d)
+        if (cd "$tmp" && cargo new -q --lib wasmcheck && cd wasmcheck && cargo build -q --target wasm32-unknown-unknown); then
+            log "wasm32-unknown-unknown target works."
+        else
+            log "WARN: wasm32-unknown-unknown test build failed, see the errors above"
+        fi
+        rm -rf "$tmp"
+    fi
+fi
