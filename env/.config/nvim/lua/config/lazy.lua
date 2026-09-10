@@ -1,5 +1,5 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
   -- bootstrap lazy.nvim
   -- stylua: ignore
   vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
@@ -14,20 +14,11 @@ require("lazy").setup({
   spec = {
     -- add LazyVim and import its plugins
     { "LazyVim/LazyVim", import = "lazyvim.plugins" },
+    -- LazyVim completes with blink.cmp now (nvim-cmp is an extra). Its "enter"
+    -- preset accepts on <CR>; "default" keeps <CR> for a newline (<C-y> accepts).
     {
-      "hrsh7th/nvim-cmp",
-      dependencies = { "nvim-lua/plenary.nvim" },
-      ft = "json",
-      sources = {
-        {
-          name = "npm",
-          keyword_length = 4,
-        },
-      },
-      opts = function(_, opts)
-        -- Prevent Enter key from accepting suggestions
-        opts.mapping["<CR>"] = nil
-      end,
+      "saghen/blink.cmp",
+      opts = { keymap = { preset = "default" } },
     },
     { import = "lazyvim.plugins.extras.lang.markdown" },
     {
@@ -48,15 +39,11 @@ require("lazy").setup({
         }
       end,
     },
+    -- Notifications come from snacks.nvim now (nvim-notify is no longer used):
+    -- keep them small and short-lived instead of disabling them.
     {
-      "rcarriga/nvim-notify",
-      opts = {
-        -- The notifications annoy me - but they're also used to display stuff
-        -- Not going to totally disable it - but at least this max_width = 0 hides it
-        max_width = 0,
-        render = "minimal",
-        stages = "static",
-      },
+      "folke/snacks.nvim",
+      opts = { notifier = { style = "minimal", timeout = 2000 } },
     },
     {
       "nvim-neo-tree/neo-tree.nvim",
@@ -79,10 +66,12 @@ require("lazy").setup({
         },
       },
     },
+    -- LazyVim's dashboard is snacks.nvim's. Same logo and entries as before;
+    -- the picker entries go through LazyVim.pick (LazyVim.telescope is gone).
     {
-      "nvimdev/dashboard-nvim",
-      event = "VimEnter",
-      opts = function()
+      "folke/snacks.nvim",
+      opts = function(_, opts)
+        -- stylua: ignore
         local logo = [[ 
 
 
@@ -92,53 +81,22 @@ require("lazy").setup({
 
 
         ]]
-
-        local opts = {
-          theme = "doom",
-          hide = {
-            -- this is taken care of by lualine
-            -- enabling this messes up the actual laststatus setting after loading a file
-            statusline = false,
+        opts.dashboard = opts.dashboard or {}
+        opts.dashboard.preset = vim.tbl_deep_extend("force", opts.dashboard.preset or {}, {
+          header = logo,
+          -- stylua: ignore
+          keys = {
+            { icon = " ", key = "f", desc = "Find File",       action = ":lua Snacks.dashboard.pick('files')" },
+            { icon = " ", key = "n", desc = "New File",        action = ":ene | startinsert" },
+            { icon = " ", key = "r", desc = "Recent Files",    action = ":lua Snacks.dashboard.pick('oldfiles')" },
+            { icon = " ", key = "g", desc = "Find Text",       action = ":lua Snacks.dashboard.pick('live_grep')" },
+            { icon = " ", key = "c", desc = "Config",          action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
+            { icon = " ", key = "s", desc = "Restore Session", section = "session" },
+            { icon = " ", key = "x", desc = "Lazy Extras",     action = ":LazyExtras" },
+            { icon = "󰒲 ", key = "l", desc = "Lazy",            action = ":Lazy" },
+            { icon = " ", key = "q", desc = "Quit",            action = ":qa" },
           },
-          config = {
-            header = vim.split(logo, "\n"),
-        -- stylua: ignore
-        center = {
-          { action = LazyVim.telescope("files"),                                    desc = " Find File",       icon = " ", key = "f" },
-          { action = "ene | startinsert",                                        desc = " New File",        icon = " ", key = "n" },
-          { action = "Telescope oldfiles",                                       desc = " Recent Files",    icon = " ", key = "r" },
-          { action = "Telescope live_grep",                                      desc = " Find Text",       icon = " ", key = "g" },
-          { action = [[lua LazyVim.telescope.config_files()()]], desc = " Config",          icon = " ", key = "c" },
-          { action = 'lua require("persistence").load()',                        desc = " Restore Session", icon = " ", key = "s" },
-          { action = "LazyExtras",                                               desc = " Lazy Extras",     icon = " ", key = "x" },
-          { action = "Lazy",                                                     desc = " Lazy",            icon = "󰒲 ", key = "l" },
-          { action = "qa",                                                       desc = " Quit",            icon = " ", key = "q" },
-        },
-            footer = function()
-              local stats = require("lazy").stats()
-              local ms = (math.floor(stats.startuptime * 100 + 0.5) / 100)
-              return { "⚡ Neovim loaded " .. stats.loaded .. "/" .. stats.count .. " plugins in " .. ms .. "ms" }
-            end,
-          },
-        }
-
-        for _, button in ipairs(opts.config.center) do
-          button.desc = button.desc .. string.rep(" ", 43 - #button.desc)
-          button.key_format = "  %s"
-        end
-
-        -- close Lazy and re-open when the dashboard is ready
-        if vim.o.filetype == "lazy" then
-          vim.cmd.close()
-          vim.api.nvim_create_autocmd("User", {
-            pattern = "DashboardLoaded",
-            callback = function()
-              require("lazy").show()
-            end,
-          })
-        end
-
-        return opts
+        })
       end,
     },
     -- import/override with your plugins

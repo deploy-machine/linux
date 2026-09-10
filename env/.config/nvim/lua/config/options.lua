@@ -13,12 +13,12 @@ vim.opt.undofile = true
 -- The pinned LazyVim (10.x) still emits %r for every line but the cursor line,
 -- so those render blank on 0.11+. Rewrite its output until LazyVim is updated.
 if vim.fn.has("nvim-0.11") == 1 then
-  _G.dev_statuscolumn = function()
-    local ok, ui = pcall(require, "lazyvim.util.ui")
-    if not ok then
-      return "%s%=%l "
+  -- Newer LazyVim (snacks statuscolumn) no longer has this module: leave it alone then.
+  local ok, ui = pcall(require, "lazyvim.util.ui")
+  if ok and type(ui.statuscolumn) == "function" then
+    _G.dev_statuscolumn = function()
+      return (ui.statuscolumn():gsub("%%r", "%%l"))
     end
-    return (ui.statuscolumn():gsub("%%r", "%%l"))
+    vim.opt.statuscolumn = "%!v:lua.dev_statuscolumn()"
   end
-  vim.opt.statuscolumn = "%!v:lua.dev_statuscolumn()"
 end
