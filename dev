@@ -82,3 +82,11 @@ copy "$DEV_ENV_HOME/scripts/cht.sh" "$HOME/.local/bin/cht"
 # OpenBSD ships doas(1) instead of sudo
 if command -v sudo >/dev/null 2>&1; then priv="sudo"; else priv="doas"; fi
 $priv cp "$DEV_ENV_HOME/scripts/start-dwm.sh" /usr/local/bin/start-dwm.sh
+
+# tmux: update_files above recreated ~/.config/tmux from env/, so make sure the
+# config is really there and its plugins (kept in ~/.tmux/plugins) are installed.
+if [ "$dry_run" = "1" ]; then
+	"$DEV_ENV_HOME/scripts/tmux-setup.sh" --dry
+else
+	"$DEV_ENV_HOME/scripts/tmux-setup.sh" || echo "dev: tmux setup reported a problem (see above)"
+fi

@@ -1,52 +1,7 @@
 #!/bin/sh
-# tmux plugins: env/.config/tmux/tmux.conf loads the Tmux Plugin Manager from
-# ~/.tmux/plugins/tpm and expects dracula/tmux through it. (TPM here is the tmux
-# plugin manager, a set of bash scripts; nothing to do with a hardware TPM.)
-# tmux itself is installed by the dev step (base on OpenBSD), bash by libs.
-set -u
-
-dry_run="0"
-if [ "${1:-}" = "--dry" ]; then dry_run="1"; fi
-
-log() {
-    if [ "$dry_run" = "1" ]; then echo "[DRY_RUN]: $1"; else echo "$1"; fi
-}
-
-do_run() {
-    log "+ $*"
-    if [ "$dry_run" = "0" ]; then "$@"; fi
-}
-
+# tmux configuration and plugins (Tmux Plugin Manager + the @plugin list in
+# env/.config/tmux/tmux.conf). The work lives in scripts/tmux-setup.sh, which
+# ./dev also runs at the end of every ./run so the state is always repaired.
 DEV_ENV_HOME="${DEV_ENV_HOME:-$(cd "$(dirname "$0")/../.." && pwd)}"
-
-for cmd in tmux git bash; do
-    command -v "$cmd" >/dev/null 2>&1 || { echo "ERROR: $cmd is not installed (run ./run dev and ./run libs first)" >&2; exit 1; }
-done
-
-# The plugin list lives in tmux.conf. ./dev copies it at the end of ./run, but
-# this script may run before that on a fresh machine, so make sure it is there.
-conf_dir="$HOME/.config/tmux"
-if [ ! -f "$conf_dir/tmux.conf" ]; then
-    do_run mkdir -p "$conf_dir"
-    do_run cp "$DEV_ENV_HOME/env/.config/tmux/tmux.conf" "$conf_dir/tmux.conf"
-fi
-
-# Older copies of the config dir carried empty plugins/tmux and plugins/tpm
-# stubs, which made TPM believe the plugins were installed. Remove empty ones.
-for stub in "$conf_dir"/plugins/*; do
-    [ -d "$stub" ] && rmdir "$stub" 2>/dev/null && log "removed empty stub $stub"
-done
-rmdir "$conf_dir/plugins" 2>/dev/null || true
-
-tpm="$HOME/.tmux/plugins/tpm"
-if [ -d "$tpm/.git" ]; then
-    do_run git -C "$tpm" pull -q --ff-only || log "WARN: could not update tpm"
-else
-    do_run git clone -q https://github.com/tmux-plugins/tpm "$tpm" || exit 1
-fi
-
-# Installs (or updates) every `set -g @plugin` from tmux.conf; works outside tmux.
-do_run "$tpm/bin/install_plugins" || { echo "ERROR: plugin install failed, try prefix + I inside tmux" >&2; exit 1; }
-
-log "Installed under $HOME/.tmux/plugins:"; ls "$HOME/.tmux/plugins"
-log "tmux plugins installed. Reload with: tmux source ~/.config/tmux/tmux.conf (or restart tmux)."
+export DEV_ENV_HOME
+exec "$DEV_ENV_HOME/scripts/tmux-setup.sh" "$@"
