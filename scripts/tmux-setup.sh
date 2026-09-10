@@ -45,6 +45,34 @@ for stub in "$conf_dir"/plugins/*; do
 done
 rmdir "$conf_dir/plugins" 2>/dev/null || true
 
+# --- does tmux load the config at all? (checked on a private server) ---
+# Everything below depends on it: TPM reads TMUX_PLUGIN_MANAGER_PATH from the
+# server, and that variable is set by the config.
+sock="dev-setup-check"
+if [ "$dry_run" = "0" ]; then
+    tmux -L "$sock" kill-server 2>/dev/null
+    tmux -L "$sock" new-session -d 2>/dev/null || { echo "tmux-setup: ERROR: tmux failed to start (config error?)" >&2; tmux -L "$sock" new-session -d; exit 1; }
+    loaded=$(tmux -L "$sock" display -p '#{config_files}')
+    prefix=$(tmux -L "$sock" show -gv prefix)
+    tpm_env=$(tmux -L "$sock" show-environment -g TMUX_PLUGIN_MANAGER_PATH 2>&1)
+    tmux -L "$sock" kill-server 2>/dev/null
+    case "$loaded" in
+        *"$conf"*) log "tmux-setup: tmux loads $conf (prefix $prefix, $tpm_env)" ;;
+        *)
+            {
+                echo "tmux-setup: ERROR: tmux did not load $conf"
+                echo "  config files tmux loaded : '${loaded:-none}'"
+                echo "  tmux version             : $(tmux -V)"
+                echo "  XDG_CONFIG_HOME          : '${XDG_CONFIG_HOME:-unset}'"
+                echo "  TMUX_CONF                : '${TMUX_CONF:-unset}'"
+                echo "  HOME                     : '$HOME'"
+                echo "  $conf:"; ls -la "$conf" 2>&1 | sed 's/^/    /'
+                [ -e "$HOME/.tmux.conf" ] && { echo "  ~/.tmux.conf exists (it is loaded too):"; ls -la "$HOME/.tmux.conf" | sed 's/^/    /'; }
+            } >&2
+            exit 1 ;;
+    esac
+fi
+
 # --- plugin manager and plugins ---
 tpm="$HOME/.tmux/plugins/tpm"
 if [ -d "$tpm/.git" ]; then
@@ -52,19 +80,22 @@ if [ -d "$tpm/.git" ]; then
 else
     do_run git clone -q https://github.com/tmux-plugins/tpm "$tpm" || { echo "tmux-setup: ERROR: cloning tpm failed" >&2; exit 1; }
 fi
-# Installs (or skips, when present) every `set -g @plugin` from tmux.conf.
-do_run "$tpm/bin/install_plugins" || { echo "tmux-setup: ERROR: plugin install failed (prefix + I inside tmux shows details)" >&2; exit 1; }
-
-# --- verification on a private server, without touching a running one ---
+# Installs (or skips, when present) every `set -g @plugin` from tmux.conf. TPM
+# talks to whatever server `tmux` reaches; a server started before the config
+# had set-environment lacks the plugin path, so point it at a private socket
+# directory where a fresh server (which reads the config) is started.
 if [ "$dry_run" = "0" ]; then
-    tmux -L dev-setup-check new-session -d 2>/dev/null || { echo "tmux-setup: ERROR: tmux failed to start with $conf" >&2; exit 1; }
-    loaded=$(tmux -L dev-setup-check display -p '#{config_files}')
-    prefix=$(tmux -L dev-setup-check show -gv prefix)
-    tmux -L dev-setup-check kill-server 2>/dev/null
-    case "$loaded" in
-        *"$conf"*) log "tmux-setup: OK, tmux loads $conf (prefix $prefix), plugins: $(ls "$HOME/.tmux/plugins" | tr '\n' ' ')" ;;
-        *) echo "tmux-setup: ERROR: tmux did not load $conf (loaded: '${loaded:-nothing}')" >&2; exit 1 ;;
-    esac
+    tpm_tmp=$(mktemp -d)
+    if TMUX= TMUX_TMPDIR="$tpm_tmp" "$tpm/bin/install_plugins"; then
+        log "tmux-setup: plugins present in $HOME/.tmux/plugins: $(ls "$HOME/.tmux/plugins" | tr '
+' ' ')"
+    else
+        echo "tmux-setup: ERROR: plugin install failed" >&2; TMUX_TMPDIR="$tpm_tmp" tmux kill-server 2>/dev/null; rm -rf "$tpm_tmp"; exit 1
+    fi
+    TMUX_TMPDIR="$tpm_tmp" tmux kill-server 2>/dev/null
+    rm -rf "$tpm_tmp"
+else
+    log "+ $tpm/bin/install_plugins (on a private server)"
 fi
 
 log "tmux-setup: a running server keeps its old settings until: tmux kill-server"
