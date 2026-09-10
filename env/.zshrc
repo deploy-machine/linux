@@ -117,8 +117,5 @@ eval `ssh-agent -s` &> /dev/null;
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^q "cht\n"
 
-# Claude Code ships ripgrep binaries for Linux/macOS only; on OpenBSD use the rg package.
-[ "$(uname -s)" = OpenBSD ] && export USE_BUILTIN_RIPGREP=0
-
 # Run tmux session on each shell startup, only if it's non nested.
 [ -z "$TMUX" ] && { exec tmux new-session && exit; }
